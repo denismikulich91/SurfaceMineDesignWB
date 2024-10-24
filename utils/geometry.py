@@ -57,6 +57,8 @@ def remove_redundant_points(polygon: List[Tuple[float, float]]) -> List[Tuple[fl
     cleaned_polygon = []
 
     for i in range(len(polygon)):
+        if i == 0:
+            cleaned_polygon.append(polygon[i])
         p1 = polygon[i]
         p2 = polygon[(i + 1) % len(polygon)]
         p3 = polygon[(i + 2) % len(polygon)]
@@ -153,7 +155,7 @@ def filter_2d_intersection_points(polygon_to_filter: List[Tuple[float, float]], 
     # first_point_in_polygon = list_with_params_applied[0]
     # list_with_params_applied.append(first_point_in_polygon)
     # TODO: check if adding first point in the end required
-
+    list_with_params_applied.append(list_with_params_applied[0])
     return list_with_params_applied
 
 def calculate_angle(v1, v2):

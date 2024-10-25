@@ -18,7 +18,7 @@ class Toe:
         obj.addProperty('App::PropertyLength', 'MinimumMiningWidth', 'Parameters', '').MinimumMiningWidth = '0m'
         obj.addProperty('App::PropertyInteger', 'SmoothingRatio', 'Shape', '').SmoothingRatio = 2
 
-        ViewProviderBox(obj.ViewObject)
+        # ViewProviderToe(obj.ViewObject)
 
         obj.Elevation = elevation
         obj.MinimumMiningWidth = min_mining_width
@@ -31,7 +31,7 @@ class Toe:
 
         start_time = time.time()
 
-        ViewProviderBox(obj.ViewObject)
+        ViewProviderToe(obj.ViewObject)
         result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
 
         if obj.FirstBench:
@@ -61,7 +61,7 @@ class Toe:
         return True  # Allows the deletion of the feature
 
 
-class ViewProviderBox:
+class ViewProviderToe:
 
     def __init__(self, obj):
         """

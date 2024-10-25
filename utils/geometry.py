@@ -88,7 +88,7 @@ def create_edges_mid_point_polygon(polygon: List[Tuple[float, float]]) -> List[T
 
 
 def filter_2d_intersection_points(polygon_to_filter: List[Tuple[float, float]], filtering_polygon: List[Tuple[float, float]], significant_length: float,
-                                  significant_corner_side_length: float, min_mining_width: float):
+                                  significant_corner_side_length: float, min_mining_width: float) -> List[Tuple[float, float]]:
     resulted_list = []
 
     for i in range(len(polygon_to_filter)):
@@ -222,6 +222,17 @@ def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: i
 
     return polygon
 
+def create_polygon_2d_offset(polygon: List[Tuple[float, float]], projection_height: float, face_angle: float) -> List[Tuple[float, float]]:
+
+    face_angle_rad = math.radians(face_angle)
+    offset_distance = projection_height / math.tan(face_angle_rad)
+    print(offset_distance)
+    shapely_polygon = Polygon(polygon)
+    offset_polygon = shapely_polygon.buffer(offset_distance)
+
+    # TODO: Reverse offset for internal polygons
+
+    return list(offset_polygon.exterior.coords)
 
 def create_crest_from_toe(toe, bench_height, face_angle):
     """

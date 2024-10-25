@@ -2,8 +2,12 @@ from typing import List, Tuple
 from FreeCAD import Vector
 
 
-def wire_to_coords2d(wires: List[Vector]) -> List[Tuple[float, float]]:
-    coords2d_list = [(point.x, point.y) for point in wires]
+def crossection_to_coords2d(crossection_polygons: List[Vector]) -> List[Tuple[float, float]]:
+    coords2d_list = [(point.x, point.y) for point in crossection_polygons]
+    return coords2d_list
+
+def wires_to_coords2d(wires: List[Vector]) -> List[Tuple[float, float]]:
+    coords2d_list = [(point.X, point.Y) for point in wires]
     return coords2d_list
 
 

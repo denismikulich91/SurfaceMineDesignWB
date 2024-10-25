@@ -1,5 +1,6 @@
 import Part
 import time
+from utils import design
 
 
 class Crest:
@@ -18,15 +19,15 @@ class Crest:
 
     def execute(self, obj):
         start_time = time.time()
-        all_wires = []
-        # for toe in obj.Toe.Shape.Wires:
-        #     crest = MineDesignUtils.create_crest_from_toe(toe, obj.BenchHeight, obj.FaceAngle)
-        #
-        #     all_wires.append(crest)
-        # if all_wires:
-        #     obj.Shape = Part.makeCompound(all_wires)
-        # end_time = time.time()
-        # print(f"Crest calculation took {(end_time - start_time) * 1000:.6f} milliseconds")
+
+        crest_elevation = obj.Toe.Shape.Wires[0].Vertexes[0].Z
+        print("crest_elevation: ", crest_elevation)
+        resulted_wires = design.create_crest(obj.Toe.Shape.Wires, crest_elevation, obj.BenchHeight.Value, obj.FaceAngle.Value)
+
+        obj.Shape = Part.makeCompound(resulted_wires)
+
+        end_time = time.time()
+        print(f"Crest calculation took {(end_time - start_time) * 1000:.6f} milliseconds")
 
     def onChanged(self, obj, prop):
         if prop == "Toe":

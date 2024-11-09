@@ -222,17 +222,21 @@ def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: i
 
     return polygon
 
-def create_polygon_2d_offset(polygon: List[Tuple[float, float]], projection_height: float, face_angle: float) -> List[Tuple[float, float]]:
-
-    face_angle_rad = math.radians(face_angle)
-    offset_distance = projection_height / math.tan(face_angle_rad)
-    print(offset_distance)
+def create_polygon_2d_offset(polygon: List[Tuple[float, float]], projection_height: float, face_angle: float, offset_length: float=0.0) -> List[Tuple[float, float]]:
     shapely_polygon = Polygon(polygon)
-    offset_polygon = shapely_polygon.buffer(offset_distance)
+    print("berm width: ", offset_length)
+    if offset_length == 0.0:
+        face_angle_rad = math.radians(face_angle)
+        offset_distance = projection_height / math.tan(face_angle_rad)
+        print(offset_distance)
+        offset_polygon = shapely_polygon.buffer(offset_distance)
+    else:
+        offset_polygon = shapely_polygon.buffer(offset_length)
 
     # TODO: Reverse offset for internal polygons
 
     return list(offset_polygon.exterior.coords)
+
 
 def create_crest_from_toe(toe, bench_height, face_angle):
     """
@@ -279,11 +283,13 @@ def create_crest_from_toe(toe, bench_height, face_angle):
     return Part.makePolygon(projected_crest)
 
 
-def joinPolygons(first_polygon, second_polygon):
-    toe_elevation = first_polygon.Vertexes[0].Z
-    first_polygon = Polygon([(point.X, point.Y) for point in first_polygon.Vertexes])
-    second_polygon = Polygon([(point.X, point.Y) for point in second_polygon.Vertexes])
-    united_polygon = unary_union([first_polygon, second_polygon])
-    points = list(united_polygon.exterior.coords)
-    final_polygon = [Vector(point[0], point[1], toe_elevation) for point in points]
-    return final_polygon
+# def joinPolygons(first_polygon: List, second_polygon: List):
+#     toe_elevation = first_polygon.Vertexes[0].Z
+#     first_polygon = Polygon([(point.X, point.Y) for point in first_polygon.Vertexes])
+#     second_polygon = Polygon([(point.X, point.Y) for point in second_polygon.Vertexes])
+#     united_polygon = unary_union([first_polygon, second_polygon])
+#     points = list(united_polygon.exterior.coords)
+#     final_polygon = [Vector(point[0], point[1], toe_elevation) for point in points]
+#     return final_polygon
+
+

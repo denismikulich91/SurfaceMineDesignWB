@@ -34,5 +34,14 @@ def create_crest(toe_polygons: List[List[Vector]], elevation: float, bench_heigh
 
     return resulted_wires
 
+def create_toe_no_expansion(crest_polygons: List[List[Vector]], elevation: float, berm_width: float) -> List[List[Vector]]:
+    resulted_wires = []
+    crest_polygons_2d = [wires_to_coords2d(wire.Vertexes) for wire in crest_polygons]
+    for polygon in crest_polygons_2d:
+        polygon_2d_offset = geometry.create_polygon_2d_offset(polygon, 0.0, 0.0, berm_width)
+        resulted_wires.append(Part.makePolygon(coords2d_to_wire(polygon_2d_offset, elevation)))
+
+    return resulted_wires
+
 
 

@@ -14,4 +14,3 @@ def wires_to_coords2d(wires: List[Vector]) -> List[Tuple[float, float]]:
 def coords2d_to_wire(coords: List[Tuple[float, float]], elevation: float) -> List[Vector]:
     wire = [Vector(point[0], point[1], elevation) for point in coords]
     return wire
-

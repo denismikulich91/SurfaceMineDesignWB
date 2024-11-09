@@ -4,13 +4,14 @@ from utils import design
 
 
 class Toe:
-    def __init__(self, obj, skin, crest, berm_width, elevation, min_mining_width, significant_length,
+    def __init__(self, obj, skin, crest, expansion_option, berm_width, elevation, min_mining_width, significant_length,
                  sign_corner_length, is_first_bench):
         self.Type = "box"
         obj.Proxy = self
         obj.addProperty('App::PropertyBool', 'FirstBench', 'Parameters', '').FirstBench = False
         obj.addProperty('App::PropertyLink', 'Skin', 'Base', 'Linked Mesh').Skin = skin
         obj.addProperty('App::PropertyLink', 'Crest', 'Base', 'Linked Crest').Crest = crest
+        obj.addProperty('App::PropertyInteger', 'ExpansionOption', 'Parameters', '').ExpansionOption = 1
         obj.addProperty('App::PropertyLength', 'Elevation', 'Parameters', '').Elevation = '0m'
         obj.addProperty('App::PropertyLength', 'BermWidth', 'Parameters', '').BermWidth = '0m'
         obj.addProperty('App::PropertyLength', 'SignificantLength', 'Shape', '').SignificantLength = '0m'
@@ -26,6 +27,7 @@ class Toe:
         obj.SignificantCornerLength = sign_corner_length
         obj.FirstBench = is_first_bench
         obj.BermWidth = berm_width
+        obj.ExpansionOption = expansion_option
 
     def execute(self, obj):
 
@@ -40,7 +42,12 @@ class Toe:
                                                            obj.MinimumMiningWidth.Value, obj.SmoothingRatio,
                                                            obj.Elevation.Value)
         else:
-            resulted_wires = []
+            if obj.ExpansionOption == 3:
+                resulted_wires = design.create_toe_no_expansion(obj.Crest.Shape.Wires, obj.Elevation.Value, obj.BermWidth.Value)
+            elif obj.ExpansionOption == 2:
+                resulted_wires = []
+            else:
+                resulted_wires = []
 
         obj.Shape = Part.makeCompound(resulted_wires)
 
@@ -151,3 +158,4 @@ class ViewProviderToe:
         Called during document restore.
         """
         return None
+    

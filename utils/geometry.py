@@ -1,7 +1,7 @@
 from FreeCAD import Vector
 import math
 import Part
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
@@ -45,6 +45,26 @@ def _is_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[fl
 
     # If the cross product is 0, the points are collinear
     return cross_product == 0
+
+
+def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[Dict[List[Tuple[float, float]], int]]:
+    result = []
+    for i, poly in enumerate(polygons):
+        # Initialize `is_internal` as 0
+        shapely_polygon = Polygon(poly)
+        is_internal = 1
+        # Check if this polygon is within any other polygon in the list
+        for j, other_poly in enumerate(polygons):
+            other_shapely_polygon = Polygon(other_poly)
+            if i != j and shapely_polygon.within(other_shapely_polygon):
+                is_internal = -1
+                print("internal polygon detected")
+                break  # No need to check further, we found it's internal
+
+        # Append the dictionary with polygon and `is_internal` key
+        result.append({"polygon": poly, "is_internal": is_internal})
+
+    return result
 
 
 def remove_redundant_points(polygon: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
@@ -222,16 +242,16 @@ def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: i
 
     return polygon
 
-def create_polygon_2d_offset(polygon: List[Tuple[float, float]], projection_height: float, face_angle: float, offset_length: float=0.0) -> List[Tuple[float, float]]:
+def create_polygon_2d_offset(polygon: List[Tuple[float, float]], is_internal: int, projection_height: float=0.0, face_angle: float=0.0, offset_length: float=0.0) -> List[Tuple[float, float]]:
     shapely_polygon = Polygon(polygon)
     print("berm width: ", offset_length)
-    if offset_length == 0.0:
+    if offset_length == 0.0 and projection_height != 0.0 and face_angle != 0.0:
         face_angle_rad = math.radians(face_angle)
         offset_distance = projection_height / math.tan(face_angle_rad)
         print(offset_distance)
-        offset_polygon = shapely_polygon.buffer(offset_distance)
+        offset_polygon = shapely_polygon.buffer(offset_distance * is_internal)
     else:
-        offset_polygon = shapely_polygon.buffer(offset_length)
+        offset_polygon = shapely_polygon.buffer(offset_length * is_internal)
 
     # TODO: Reverse offset for internal polygons
 

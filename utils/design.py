@@ -4,7 +4,7 @@ import Part
 from utils import geometry
 from utils.utils import crossection_to_coords2d, coords2d_to_wire, wires_to_coords2d
 
-
+# TODO: add mininmum area for polygons and update functions to ignore it
 def create_first_bench_toe(shell_intersection: List[List[Vector]], significant_length: float,
                            significant_corner_length: float, min_mining_width: float, smooth_ratio: int,
                            elevation: float) -> List[List[Vector]]:
@@ -28,8 +28,9 @@ def create_first_bench_toe(shell_intersection: List[List[Vector]], significant_l
 def create_crest(toe_polygons: List[List[Vector]], elevation: float, bench_height: float, face_angle: float) -> List[List[Vector]]:
     resulted_wires = []
     toe_polygons_2d = [wires_to_coords2d(wire.Vertexes) for wire in toe_polygons]
-    for polygon in toe_polygons_2d:
-        polygon_2d_offset = geometry.create_polygon_2d_offset(polygon, bench_height, face_angle)
+    toe_polygons_2d_dict = geometry.mark_internal_polygons(toe_polygons_2d)
+    for polygon in toe_polygons_2d_dict:
+        polygon_2d_offset = geometry.create_polygon_2d_offset(polygon["polygon"], polygon["is_internal"], bench_height, face_angle)
         resulted_wires.append(Part.makePolygon(coords2d_to_wire(polygon_2d_offset, elevation + bench_height)))
 
     return resulted_wires
@@ -37,8 +38,9 @@ def create_crest(toe_polygons: List[List[Vector]], elevation: float, bench_heigh
 def create_toe_no_expansion(crest_polygons: List[List[Vector]], elevation: float, berm_width: float) -> List[List[Vector]]:
     resulted_wires = []
     crest_polygons_2d = [wires_to_coords2d(wire.Vertexes) for wire in crest_polygons]
-    for polygon in crest_polygons_2d:
-        polygon_2d_offset = geometry.create_polygon_2d_offset(polygon, 0.0, 0.0, berm_width)
+    crest_polygons_2d_dict = geometry.mark_internal_polygons(crest_polygons_2d)
+    for polygon in crest_polygons_2d_dict:
+        polygon_2d_offset = geometry.create_polygon_2d_offset(polygon["polygon"], polygon["is_internal"], 0.0, 0.0, berm_width)
         resulted_wires.append(Part.makePolygon(coords2d_to_wire(polygon_2d_offset, elevation)))
 
     return resulted_wires

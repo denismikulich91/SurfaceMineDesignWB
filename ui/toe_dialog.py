@@ -68,6 +68,11 @@ class CreateToeDialog(QtWidgets.QDialog):
         layout.addWidget(self.elevation_label)
         layout.addWidget(self.elevation_input)
 
+        self.min_area_label = QtWidgets.QLabel("Minimum Area (default 1000)", self)
+        self.min_area_input = QtWidgets.QLineEdit("1000", self)
+        layout.addWidget(self.min_area_label)
+        layout.addWidget(self.min_area_input)
+
         # Minimum Mining Width input
         self.min_mining_width_label = QtWidgets.QLabel("Minimum Mining Width (default 150)", self)
         self.min_mining_width_input = QtWidgets.QLineEdit("150", self)
@@ -97,11 +102,12 @@ class CreateToeDialog(QtWidgets.QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
-    def get_inputs(self) -> Tuple[str, str, int, str, str, str, str, str, bool]:
+    def get_inputs(self) -> Tuple[str, str, int, str, str, str, str, str, str, bool]:
         selected_shell = self.object_dropdown.currentText()
         selected_crest = self.crest_dropdown.currentText()
         berm_width = self.berm_width_input.text()
         elevation = self.elevation_input.text()
+        min_area = self.min_area_input.text()
         min_mining_width = self.min_mining_width_input.text()
         significant_length = self.significant_length_input.text()
         significant_corner_length = self.significant_corner_length_input.text()
@@ -115,7 +121,7 @@ class CreateToeDialog(QtWidgets.QDialog):
         else:
             expansion_type = 3
 
-        return selected_shell, selected_crest, expansion_type, berm_width, elevation, min_mining_width, significant_length, significant_corner_length, is_first_bench
+        return selected_shell, selected_crest, expansion_type, berm_width, elevation, min_area, min_mining_width, significant_length, significant_corner_length, is_first_bench
 
     def toggle_crest_selection(self) -> None:
         """Enable or disable certain inputs based on the checkbox state."""

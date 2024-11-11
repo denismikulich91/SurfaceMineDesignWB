@@ -30,7 +30,7 @@ class CreateToe:
         dialog = CreateToeDialog(object_list)
 
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            (selected_skin_name, selected_crest_name, expansion_option, raw_berm_width, raw_elevation,
+            (selected_skin_name, selected_crest_name, expansion_option, raw_berm_width, raw_elevation, raw_min_area,
              raw_min_mining_width, raw_significant_length, raw_sign_corner_length,
              is_first_bench) = dialog.get_inputs()
 
@@ -49,12 +49,13 @@ class CreateToe:
             try:
                 berm_width = float(raw_berm_width) * 1000
                 elevation = float(raw_elevation) * 1000 + 100
+                min_area = float(raw_min_area) * 1000000
                 min_mining_width = float(raw_min_mining_width) * 1000
                 significant_length = float(raw_significant_length) * 1000
                 sign_corner_length = float(raw_sign_corner_length) * 1000
 
                 obj = doc.addObject("Part::FeaturePython", "toe_bench_" + raw_elevation)
-                Toe(obj, selected_skin, selected_crest, expansion_option, berm_width, elevation, min_mining_width, significant_length, sign_corner_length, is_first_bench)
+                Toe(obj, selected_skin, selected_crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length, sign_corner_length, is_first_bench)
                 doc.recompute()
 
             except ValueError:

@@ -4,7 +4,7 @@ from utils import design
 
 
 class Toe:
-    def __init__(self, obj, skin, crest, expansion_option, berm_width, elevation, min_mining_width, significant_length,
+    def __init__(self, obj, skin, crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length,
                  sign_corner_length, is_first_bench):
         self.Type = "box"
         obj.Proxy = self
@@ -14,6 +14,7 @@ class Toe:
         obj.addProperty('App::PropertyInteger', 'ExpansionOption', 'Parameters', '').ExpansionOption = 1
         obj.addProperty('App::PropertyLength', 'Elevation', 'Parameters', '').Elevation = '0m'
         obj.addProperty('App::PropertyLength', 'BermWidth', 'Parameters', '').BermWidth = '0m'
+        obj.addProperty('App::PropertyArea', 'MinimumArea', 'Parameters', '').MinimumArea = '0m^2'
         obj.addProperty('App::PropertyLength', 'SignificantLength', 'Shape', '').SignificantLength = '0m'
         obj.addProperty('App::PropertyLength', 'SignificantCornerLength', 'Shape', '').SignificantCornerLength = '0m'
         obj.addProperty('App::PropertyLength', 'MinimumMiningWidth', 'Parameters', '').MinimumMiningWidth = '0m'
@@ -28,6 +29,8 @@ class Toe:
         obj.FirstBench = is_first_bench
         obj.BermWidth = berm_width
         obj.ExpansionOption = expansion_option
+        obj.MinimumArea = min_area
+
 
     def execute(self, obj):
 
@@ -37,13 +40,13 @@ class Toe:
         result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
 
         if obj.FirstBench:
-            resulted_wires = design.create_first_bench_toe(result[0], obj.SignificantLength.Value,
+            resulted_wires = design.create_first_bench_toe(result[0], obj.SignificantLength.Value, obj.MinimumArea.Value,
                                                            obj.SignificantCornerLength.Value,
                                                            obj.MinimumMiningWidth.Value, obj.SmoothingRatio,
                                                            obj.Elevation.Value)
         else:
             if obj.ExpansionOption == 3:
-                resulted_wires = design.create_toe_no_expansion(obj.Crest.Shape.Wires, obj.Elevation.Value, obj.BermWidth.Value)
+                resulted_wires = design.create_toe_no_expansion(obj.Crest.Shape.Wires, obj.Elevation.Value, obj.BermWidth.Value, obj.MinimumArea.Value)
             elif obj.ExpansionOption == 2:
                 resulted_wires = []
             else:

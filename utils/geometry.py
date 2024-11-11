@@ -244,7 +244,6 @@ def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: i
 
 def create_polygon_2d_offset(polygon: List[Tuple[float, float]], is_internal: int, projection_height: float=0.0, face_angle: float=0.0, offset_length: float=0.0) -> List[Tuple[float, float]]:
     shapely_polygon = Polygon(polygon)
-    print("berm width: ", offset_length)
     if offset_length == 0.0 and projection_height != 0.0 and face_angle != 0.0:
         face_angle_rad = math.radians(face_angle)
         offset_distance = projection_height / math.tan(face_angle_rad)
@@ -252,8 +251,6 @@ def create_polygon_2d_offset(polygon: List[Tuple[float, float]], is_internal: in
         offset_polygon = shapely_polygon.buffer(offset_distance * is_internal)
     else:
         offset_polygon = shapely_polygon.buffer(offset_length * is_internal)
-
-    # TODO: Reverse offset for internal polygons
 
     return list(offset_polygon.exterior.coords)
 
@@ -301,6 +298,10 @@ def create_crest_from_toe(toe, bench_height, face_angle):
         projected_crest.append(projected_crest[0])
 
     return Part.makePolygon(projected_crest)
+
+def get_area(polygon: List[Tuple[float, float]]) -> float:
+    shapely_polygon = Polygon(polygon)
+    return shapely_polygon.area
 
 
 # def joinPolygons(first_polygon: List, second_polygon: List):

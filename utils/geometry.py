@@ -48,6 +48,9 @@ def _is_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[fl
 
 
 def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[Dict[List[Tuple[float, float]], int]]:
+    """
+    Returns -1 if internal, 1 if regular
+    """
     result = []
     for i, poly in enumerate(polygons):
         # Initialize `is_internal` as 0
@@ -174,9 +177,9 @@ def filter_2d_intersection_points(polygon_to_filter: List[Tuple[float, float]], 
     
     # first_point_in_polygon = list_with_params_applied[0]
     # list_with_params_applied.append(first_point_in_polygon)
-    # TODO: check if adding first point in the end required
     list_with_params_applied.append(list_with_params_applied[0])
     return list_with_params_applied
+
 
 def calculate_angle(v1, v2):
     """
@@ -186,25 +189,6 @@ def calculate_angle(v1, v2):
     magnitude_v1 = v1.Length
     magnitude_v2 = v2.Length
     return math.acos(dot_product / (magnitude_v1 * magnitude_v2))
-
-
-def convert_polygon_to_sketch(polygon, sketch, tolerance=1e-7):
-    for i in range(len(polygon)):
-        first_point = polygon[i]
-        second_point = polygon[(i + 1) % len(polygon)]
-        p1 = Vector(first_point)
-        p2 = Vector(second_point)
-
-        # Check if the points are distinct (i.e., not equal within the tolerance)
-        if p1.distanceToPoint(p2) > tolerance:
-            # Add the line segment if the points are distinct
-            sketch.addGeometry(Part.LineSegment(p1, p2))
-        else:
-            print(f"Skipping line segment: points {p1} and {p2} are too close.")
-    print("Sketch geometry: ", sketch.Geometry)
-
-
-from typing import List, Tuple
 
 
 def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: int = 1) -> List[Tuple[float, float]]:
@@ -241,6 +225,7 @@ def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: i
     polygon.append(polygon[0])
 
     return polygon
+
 
 def create_polygon_2d_offset(polygon: List[Tuple[float, float]], is_internal: int, projection_height: float=0.0, face_angle: float=0.0, offset_length: float=0.0) -> List[Tuple[float, float]]:
     shapely_polygon = Polygon(polygon)
@@ -304,13 +289,23 @@ def get_area(polygon: List[Tuple[float, float]]) -> float:
     return shapely_polygon.area
 
 
-# def joinPolygons(first_polygon: List, second_polygon: List):
-#     toe_elevation = first_polygon.Vertexes[0].Z
-#     first_polygon = Polygon([(point.X, point.Y) for point in first_polygon.Vertexes])
-#     second_polygon = Polygon([(point.X, point.Y) for point in second_polygon.Vertexes])
-#     united_polygon = unary_union([first_polygon, second_polygon])
-#     points = list(united_polygon.exterior.coords)
-#     final_polygon = [Vector(point[0], point[1], toe_elevation) for point in points]
-#     return final_polygon
+def join_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    shapely_first_polygon = Polygon(first_polygon)
+    shapely_second_polygon = Polygon(second_polygon)
+    if shapely_first_polygon.contains(shapely_second_polygon):
+        return list(shapely_first_polygon.exterior.coords)
+    
+    elif shapely_second_polygon.contains(shapely_first_polygon):
+        return list(shapely_second_polygon.exterior.coords)
+    
+    elif shapely_first_polygon.intersects(shapely_second_polygon):  # They intersect
+        union_polygon = shapely_first_polygon.union(shapely_second_polygon)
+        print("union_polygon")
+        print(list(union_polygon.exterior.coords))
+        return list(union_polygon.exterior.coords)
+    
+    else:
+        return []
+
 
 

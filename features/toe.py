@@ -37,6 +37,7 @@ class Toe:
         start_time = time.time()
 
         ViewProviderToe(obj.ViewObject)
+        # TODO: ignore getting result if expantion option is 3
         result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
 
         if obj.FirstBench:
@@ -48,9 +49,13 @@ class Toe:
             if obj.ExpansionOption == 3:
                 resulted_wires = design.create_toe_no_expansion(obj.Crest.Shape.Wires, obj.Elevation.Value, obj.BermWidth.Value, obj.MinimumArea.Value)
             elif obj.ExpansionOption == 2:
+                print("Here will be a partial expansion option developed")
                 resulted_wires = []
             else:
-                resulted_wires = []
+                print("shell expansion option")
+                resulted_wires = design.create_toe_with_expansion(result[0], obj.Crest.Shape.Wires, obj.BermWidth.Value, obj.MinimumArea.Value, 
+                                                                  obj.SignificantLength.Value, obj.SignificantCornerLength.Value, obj.MinimumMiningWidth.Value, 
+                                                                  obj.SmoothingRatio, obj.Elevation.Value)
 
         obj.Shape = Part.makeCompound(resulted_wires)
 

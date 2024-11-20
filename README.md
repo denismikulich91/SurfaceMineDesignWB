@@ -4,8 +4,6 @@
 
 - **Parametric Toes and Crests Generation (Work In Progress)**  
   - Create toes and crests based on user-defined parameters and an optimization shell (under development).  
-
-- **Freehanded Pit Bottom Sketching ✅ (Done)**  
   - Generate toes and crests from user-defined parameters and a freehanded pit bottom sketch (developed).  
 
 - **Ramp Design 🚦(Not started)**  

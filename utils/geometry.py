@@ -47,7 +47,7 @@ def _is_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[fl
     return cross_product == 0
 
 
-def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[Dict[List[Tuple[float, float]], int]]:
+def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[Dict[List[Tuple[float, float]], bool]]:
     """
     Returns -1 if internal, 1 if regular
     """
@@ -55,14 +55,12 @@ def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[Di
     for i, poly in enumerate(polygons):
         # Initialize `is_internal` as 0
         shapely_polygon = Polygon(poly)
-        is_internal = 1
+        is_internal = False
         # Check if this polygon is within any other polygon in the list
         for j, other_poly in enumerate(polygons):
             other_shapely_polygon = Polygon(other_poly)
-            if i != j and shapely_polygon.within(other_shapely_polygon):
-                is_internal = -1
-                print("internal polygon detected")
-                break  # No need to check further, we found it's internal
+            if i != j and other_shapely_polygon.contains(shapely_polygon):
+                is_internal = True
 
         # Append the dictionary with polygon and `is_internal` key
         result.append({"polygon": poly, "is_internal": is_internal})
@@ -227,17 +225,41 @@ def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: i
     return polygon
 
 
-def create_polygon_2d_offset(polygon: List[Tuple[float, float]], is_internal: int, projection_height: float=0.0, face_angle: float=0.0, offset_length: float=0.0) -> List[Tuple[float, float]]:
+def create_polygon_2d_offset(polygon: List[Tuple[float, float]], 
+                             is_internal: bool, 
+                             projection_height: float = 0.0, 
+                             face_angle: float = 0.0, 
+                             offset_length: float = 0.0) -> List[List[Tuple[float, float]]]:
+
     shapely_polygon = Polygon(polygon)
+    offset_direction = -1 if is_internal else 1
+    
+    # Compute offset distance
     if offset_length == 0.0 and projection_height != 0.0 and face_angle != 0.0:
         face_angle_rad = math.radians(face_angle)
         offset_distance = projection_height / math.tan(face_angle_rad)
-        print(offset_distance)
-        offset_polygon = shapely_polygon.buffer(offset_distance * is_internal)
     else:
-        offset_polygon = shapely_polygon.buffer(offset_length * is_internal)
+        offset_distance = offset_length
 
-    return list(offset_polygon.exterior.coords)
+    # Create the offset polygon
+    offset_polygon = shapely_polygon.buffer(offset_distance * offset_direction, join_style=2)
+
+    # Extract outer and inner boundaries
+    result = []
+    if offset_polygon.is_empty:
+        return result
+
+    if offset_polygon.geom_type == 'Polygon':
+        result.append(list(offset_polygon.exterior.coords))
+        result.extend([list(interior.coords) for interior in offset_polygon.interiors])
+    elif offset_polygon.geom_type == 'MultiPolygon':
+        # Handle MultiPolygon by extracting all components
+        for poly in offset_polygon.geoms:
+            result.append(list(poly.exterior.coords))
+            result.extend([list(interior.coords) for interior in poly.interiors])
+    else:
+        raise ValueError("Offset operation resulted in unexpected geometry type.")
+    return result
 
 
 def create_crest_from_toe(toe, bench_height, face_angle):
@@ -288,24 +310,60 @@ def get_area(polygon: List[Tuple[float, float]]) -> float:
     shapely_polygon = Polygon(polygon)
     return shapely_polygon.area
 
-
+# TODO: this function duplicates polygon. Needs to be redesigned entirely
 def join_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    print("join_2d_polygons")
     shapely_first_polygon = Polygon(first_polygon)
     shapely_second_polygon = Polygon(second_polygon)
     if shapely_first_polygon.contains(shapely_second_polygon):
+        print("contains")
         return list(shapely_first_polygon.exterior.coords)
     
     elif shapely_second_polygon.contains(shapely_first_polygon):
+        print("contained")
         return list(shapely_second_polygon.exterior.coords)
     
     elif shapely_first_polygon.intersects(shapely_second_polygon):  # They intersect
         union_polygon = shapely_first_polygon.union(shapely_second_polygon)
-        print("union_polygon")
-        print(list(union_polygon.exterior.coords))
+        print("intersects")
         return list(union_polygon.exterior.coords)
     
     else:
-        return []
+        print("other")
+        return list(shapely_first_polygon.exterior.coords)
+    
+def substract_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: List[Tuple[float, float]]) -> List[List[Tuple[float, float]]]:
+    shapely_first_polygon = Polygon(first_polygon)
+    shapely_second_polygon = Polygon(second_polygon)
+    
+    # Check containment cases
+    if shapely_first_polygon.contains(shapely_second_polygon):
+        return [list(shapely_second_polygon.exterior.coords)]
+    
+    elif shapely_second_polygon.contains(shapely_first_polygon):
+        return [list(shapely_first_polygon.exterior.coords)]
+    
+    elif shapely_first_polygon.intersects(shapely_second_polygon):  # They intersect
+        difference_polygon = shapely_first_polygon.intersection(shapely_second_polygon)
+        print("check difference")
+        
+        # Handle different geometry types resulting from the difference
+        result = []
+        if difference_polygon.is_empty:
+            return result  # No resulting polygon
+        elif difference_polygon.geom_type == 'Polygon':
+            result.append(list(difference_polygon.exterior.coords))
+        elif difference_polygon.geom_type == 'MultiPolygon':
+            for poly in difference_polygon.geoms:
+                result.append(list(poly.exterior.coords))
+        else:
+            raise ValueError("Unexpected geometry type in difference operation.")
+        
+        return result
+    
+    else:  # No intersection, return the original first polygon as is
+        return [list(shapely_first_polygon.exterior.coords)]
+
 
 
 

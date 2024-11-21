@@ -5,12 +5,13 @@ from utils import design
 
 class Toe:
     def __init__(self, obj, skin, crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length,
-                 sign_corner_length, is_first_bench):
-        self.Type = "box"
+                 sign_corner_length, is_first_bench, ignore_expan_poly=None):
+        self.Type = "toe"
         obj.Proxy = self
         obj.addProperty('App::PropertyBool', 'FirstBench', 'Parameters', '').FirstBench = False
         obj.addProperty('App::PropertyLink', 'Skin', 'Base', 'Linked Mesh').Skin = skin
         obj.addProperty('App::PropertyLink', 'Crest', 'Base', 'Linked Crest').Crest = crest
+        obj.addProperty('App::PropertyLink', 'ExpansionIgnorePolygon', 'Base', 'Linked Expansion ignore polygon').ExpansionIgnorePolygon = ignore_expan_poly
         obj.addProperty('App::PropertyInteger', 'ExpansionOption', 'Parameters', '').ExpansionOption = 1
         obj.addProperty('App::PropertyLength', 'Elevation', 'Parameters', '').Elevation = '0m'
         obj.addProperty('App::PropertyLength', 'BermWidth', 'Parameters', '').BermWidth = '0m'
@@ -19,8 +20,6 @@ class Toe:
         obj.addProperty('App::PropertyLength', 'SignificantCornerLength', 'Shape', '').SignificantCornerLength = '0m'
         obj.addProperty('App::PropertyLength', 'MinimumMiningWidth', 'Parameters', '').MinimumMiningWidth = '0m'
         obj.addProperty('App::PropertyInteger', 'SmoothingRatio', 'Shape', '').SmoothingRatio = 2
-
-        # ViewProviderToe(obj.ViewObject)
 
         obj.Elevation = elevation
         obj.MinimumMiningWidth = min_mining_width
@@ -37,8 +36,9 @@ class Toe:
         start_time = time.time()
 
         ViewProviderToe(obj.ViewObject)
-        # TODO: ignore getting result if expantion option is 3
-        result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
+
+        if obj.ExpansionOption != 3:
+            result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
 
         if obj.FirstBench:
             resulted_wires = design.create_first_bench_toe(result[0], obj.SignificantLength.Value, obj.MinimumArea.Value,
@@ -49,8 +49,11 @@ class Toe:
             if obj.ExpansionOption == 3:
                 resulted_wires = design.create_toe_no_expansion(obj.Crest.Shape.Wires, obj.Elevation.Value, obj.BermWidth.Value, obj.MinimumArea.Value)
             elif obj.ExpansionOption == 2:
+                # TODO: partial expansion
                 print("Here will be a partial expansion option developed")
-                resulted_wires = []
+                resulted_wires = design.create_toe_with_expansion(result[0], obj.Crest.Shape.Wires, obj.BermWidth.Value, obj.MinimumArea.Value, 
+                                                    obj.SignificantLength.Value, obj.SignificantCornerLength.Value, obj.MinimumMiningWidth.Value, 
+                                                    obj.SmoothingRatio, obj.Elevation.Value, obj.ExpansionIgnorePolygon.Shape.Wires)
             else:
                 print("shell expansion option")
                 resulted_wires = design.create_toe_with_expansion(result[0], obj.Crest.Shape.Wires, obj.BermWidth.Value, obj.MinimumArea.Value, 

@@ -1,10 +1,17 @@
-from FreeCAD import Vector
 import math
-import Part
-from typing import List, Tuple, Dict
+import Part # type: ignore
+from typing import List, Tuple, Dict, Any
 
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
+
+from dataclasses import dataclass
+
+
+@dataclass
+class PolygonData:
+    polygon: List[Tuple[float, float]]
+    is_internal: bool
 
 
 def is_point_inside_polygon(point: Tuple[float, float], polygon_points: List[Tuple[float, float]]) -> bool:
@@ -47,24 +54,18 @@ def _is_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[fl
     return cross_product == 0
 
 
-def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[Dict[List[Tuple[float, float]], bool]]:
-    """
-    Returns -1 if internal, 1 if regular
-    """
+def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[PolygonData]:
     result = []
     for i, poly in enumerate(polygons):
-        # Initialize `is_internal` as 0
         shapely_polygon = Polygon(poly)
         is_internal = False
-        # Check if this polygon is within any other polygon in the list
         for j, other_poly in enumerate(polygons):
-            other_shapely_polygon = Polygon(other_poly)
-            if i != j and other_shapely_polygon.contains(shapely_polygon):
-                is_internal = True
-
-        # Append the dictionary with polygon and `is_internal` key
-        result.append({"polygon": poly, "is_internal": is_internal})
-
+            if i != j:
+                other_shapely_polygon = Polygon(other_poly)
+                if other_shapely_polygon.contains(shapely_polygon):
+                    is_internal = True
+                    break
+        result.append(PolygonData(polygon=poly, is_internal=is_internal))
     return result
 
 
@@ -242,7 +243,7 @@ def create_polygon_2d_offset(polygon: List[Tuple[float, float]],
         offset_distance = offset_length
 
     # Create the offset polygon
-    offset_polygon = shapely_polygon.buffer(offset_distance * offset_direction, join_style=2)
+    offset_polygon = shapely_polygon.buffer(offset_distance * offset_direction, join_style='bevel')
 
     # Extract outer and inner boundaries
     result = []
@@ -262,55 +263,11 @@ def create_polygon_2d_offset(polygon: List[Tuple[float, float]],
     return result
 
 
-def create_crest_from_toe(toe, bench_height, face_angle):
-    """
-    Calculates the horizontal offset for the pit crest based on toe position, bench height,
-    and face angle, and projects the crest to the target elevation.
-
-    Parameters:
-    toe (Part.Wire): The toe wire (2D outline)
-    bench_height (float): Vertical distance between toe and crest
-    face_angle (float): Face angle in degrees (angle of pit face to horizontal)
-    crest_elevation (float): Target elevation for the crest
-
-    Returns:
-    Part.Wire: The crest wire projected to the target elevation
-    """
-    # Convert face angle to radians
-    face_angle_rad = math.radians(face_angle)
-
-    # Calculate horizontal offset using trigonometry (tan)
-    offset_distance = bench_height / math.tan(face_angle_rad)
-
-    offset_wire = toe.makeOffset2D(offset_distance)
-
-    toe_elevation = offset_wire.Vertexes[0].Z
-    shapely_point_list = [(point.X, point.Y) for point in offset_wire.Vertexes]
-    shapely_polygon = Polygon(shapely_point_list)
-
-    # Clean self-intersections and keep only the outer shell
-    if shapely_polygon.is_valid:
-        cleaned_polygon = shapely_polygon
-    else:
-        cleaned_polygon = shapely_polygon.buffer(0)  # Clean up self-intersections
-
-    # Get the exterior coordinates of the cleaned polygon
-    crest_points = list(cleaned_polygon.exterior.coords)
-
-    # Project the points to the correct elevation
-    projected_crest = [Vector(point[0], point[1], toe_elevation + bench_height.Value) for point in crest_points]
-
-    # Close the wire by appending the first point
-    if projected_crest:
-        projected_crest.append(projected_crest[0])
-
-    return Part.makePolygon(projected_crest)
-
 def get_area(polygon: List[Tuple[float, float]]) -> float:
     shapely_polygon = Polygon(polygon)
     return shapely_polygon.area
 
-# TODO: this function duplicates polygon. Needs to be redesigned entirely
+
 def join_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
     print("join_2d_polygons")
     shapely_first_polygon = Polygon(first_polygon)
@@ -332,20 +289,29 @@ def join_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: L
         print("other")
         return list(shapely_first_polygon.exterior.coords)
     
-def substract_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: List[Tuple[float, float]]) -> List[List[Tuple[float, float]]]:
+
+def substract_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: List[Tuple[float, float]], cut_option: bool=False) -> List[List[Tuple[float, float]]]:
     shapely_first_polygon = Polygon(first_polygon)
     shapely_second_polygon = Polygon(second_polygon)
     
     # Check containment cases
     if shapely_first_polygon.contains(shapely_second_polygon):
-        return [list(shapely_second_polygon.exterior.coords)]
+        if not cut_option:
+            return [list(shapely_second_polygon.exterior.coords)]
+        else:
+            return []
     
     elif shapely_second_polygon.contains(shapely_first_polygon):
-        return [list(shapely_first_polygon.exterior.coords)]
+        if not cut_option:
+            return [list(shapely_first_polygon.exterior.coords)]
+        else:
+            return []
     
     elif shapely_first_polygon.intersects(shapely_second_polygon):  # They intersect
-        difference_polygon = shapely_first_polygon.intersection(shapely_second_polygon)
-        print("check difference")
+        if not cut_option:
+            difference_polygon = shapely_first_polygon.intersection(shapely_second_polygon)
+        else:
+            difference_polygon = shapely_second_polygon.difference(shapely_first_polygon)
         
         # Handle different geometry types resulting from the difference
         result = []
@@ -353,7 +319,9 @@ def substract_2d_polygons(first_polygon: List[Tuple[float, float]], second_polyg
             return result  # No resulting polygon
         elif difference_polygon.geom_type == 'Polygon':
             result.append(list(difference_polygon.exterior.coords))
+            print("result type: polygon")
         elif difference_polygon.geom_type == 'MultiPolygon':
+            print("result type: multipolygon")
             for poly in difference_polygon.geoms:
                 result.append(list(poly.exterior.coords))
         else:
@@ -361,9 +329,9 @@ def substract_2d_polygons(first_polygon: List[Tuple[float, float]], second_polyg
         
         return result
     
-    else:  # No intersection, return the original first polygon as is
-        return [list(shapely_first_polygon.exterior.coords)]
-
-
-
-
+    else:
+        if not cut_option:
+            return [list(shapely_second_polygon.exterior.coords)]
+        else:
+            return []
+    

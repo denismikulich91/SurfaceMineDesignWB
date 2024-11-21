@@ -1,5 +1,5 @@
-from PySide2 import QtGui, QtCore, QtWidgets
-from typing import List, Tuple
+from PySide2 import QtCore, QtWidgets # type: ignore
+from typing import List, Tuple, Optional
 
 
 class CreateToeDialog(QtWidgets.QDialog):
@@ -46,12 +46,19 @@ class CreateToeDialog(QtWidgets.QDialog):
         layout.addWidget(self.expansion_label)
 
         self.expansion_group = QtWidgets.QButtonGroup(self)
+        self.expansion_group.buttonClicked.connect(self.toggle_expansion_type_selection)
         self.shell_expansion_radio = QtWidgets.QRadioButton("Shell expansion", self)
         self.partial_expansion_radio = QtWidgets.QRadioButton("Partial expansion", self)
         self.no_expansion_radio = QtWidgets.QRadioButton("No expansion", self)
-        
-        # Set default selection
+
+        self.expan_poly_label = QtWidgets.QLabel("Select Expansion ignore polygon", self)
+        self.expan_poly_dropdown = QtWidgets.QComboBox(self)
+        for obj in object_list:
+            self.expan_poly_dropdown.addItem(obj.Label)
+
         self.shell_expansion_radio.setChecked(True)
+        self.shell_expansion_radio.setChecked(True)
+        self.toggle_expansion_type_selection(self.shell_expansion_radio)
 
         # Add radio buttons to the group and layout
         self.expansion_group.addButton(self.shell_expansion_radio)
@@ -61,6 +68,9 @@ class CreateToeDialog(QtWidgets.QDialog):
         layout.addWidget(self.shell_expansion_radio)
         layout.addWidget(self.partial_expansion_radio)
         layout.addWidget(self.no_expansion_radio)
+
+        layout.addWidget(self.expan_poly_label)
+        layout.addWidget(self.expan_poly_dropdown)
 
         # Elevation input
         self.elevation_label = QtWidgets.QLabel("Enter Elevation (m)", self)
@@ -102,7 +112,7 @@ class CreateToeDialog(QtWidgets.QDialog):
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
 
-    def get_inputs(self) -> Tuple[str, str, int, str, str, str, str, str, str, bool]:
+    def get_inputs(self) -> Tuple[str, str, int, str, str, str, str, str, str, bool, Optional[str]]:
         selected_shell = self.object_dropdown.currentText()
         selected_crest = self.crest_dropdown.currentText()
         berm_width = self.berm_width_input.text()
@@ -114,14 +124,17 @@ class CreateToeDialog(QtWidgets.QDialog):
         is_first_bench = self.first_bench_checkbox.isChecked()
 
         # Determine selected expansion option
-        if self.shell_expansion_radio.isChecked():
+        if self.shell_expansion_radio.isChecked() or self.first_bench_checkbox.isChecked():
             expansion_type = 1
         elif self.partial_expansion_radio.isChecked():
             expansion_type = 2
         else:
             expansion_type = 3
-
-        return selected_shell, selected_crest, expansion_type, berm_width, elevation, min_area, min_mining_width, significant_length, significant_corner_length, is_first_bench
+        non_expansion_polygon = None
+        if expansion_type == 2:
+            non_expansion_polygon = self.expan_poly_dropdown.currentText()
+            
+        return selected_shell, selected_crest, expansion_type, berm_width, elevation, min_area, min_mining_width, significant_length, significant_corner_length, is_first_bench, non_expansion_polygon
 
     def toggle_crest_selection(self) -> None:
         """Enable or disable certain inputs based on the checkbox state."""
@@ -133,3 +146,14 @@ class CreateToeDialog(QtWidgets.QDialog):
         self.shell_expansion_radio.setEnabled(not is_checked)
         self.partial_expansion_radio.setEnabled(not is_checked)
         self.no_expansion_radio.setEnabled(not is_checked)
+
+    def toggle_expansion_type_selection(self, button: QtWidgets.QAbstractButton):
+        if button == self.shell_expansion_radio:
+            self.expan_poly_label.setEnabled(False)
+            self.expan_poly_dropdown.setEnabled(False)
+        elif button == self.partial_expansion_radio:
+            self.expan_poly_label.setEnabled(True)
+            self.expan_poly_dropdown.setEnabled(True)
+        elif button == self.no_expansion_radio:
+            self.expan_poly_label.setEnabled(False)
+            self.expan_poly_dropdown.setEnabled(False)

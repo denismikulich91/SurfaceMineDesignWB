@@ -32,7 +32,7 @@ class CreateToe:
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             (selected_skin_name, selected_crest_name, expansion_option, raw_berm_width, raw_elevation, raw_min_area,
              raw_min_mining_width, raw_significant_length, raw_sign_corner_length,
-             is_first_bench) = dialog.get_inputs()
+             is_first_bench, selected_ignore_expan_poly_name) = dialog.get_inputs()
 
             selected_skin = next((obj for obj in object_list if obj.Label == selected_skin_name), None)
 
@@ -41,10 +41,18 @@ class CreateToe:
                 return
 
             selected_crest = next((obj for obj in object_list if obj.Label == selected_crest_name), None)
-
+            selected_ignore_expan_poly = None
+            
             if not selected_crest:  # Fixed: Checking selected_crest instead of selected_skin again
                 QtWidgets.QMessageBox.warning(None, "Invalid Object", "The selected crest object could not be found.")
                 return
+            
+            if expansion_option == 2:
+                selected_ignore_expan_poly = next((obj for obj in object_list if obj.Label == selected_ignore_expan_poly_name), None)
+
+                if not selected_ignore_expan_poly:  # Fixed: Checking selected_crest instead of selected_skin again
+                    QtWidgets.QMessageBox.warning(None, "Invalid Object", "The selected ignore polygon object could not be found.")
+                    return
 
             try:
                 berm_width = float(raw_berm_width) * 1000
@@ -55,7 +63,7 @@ class CreateToe:
                 sign_corner_length = float(raw_sign_corner_length) * 1000
 
                 obj = doc.addObject("Part::FeaturePython", "toe_bench_" + raw_elevation)
-                Toe(obj, selected_skin, selected_crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length, sign_corner_length, is_first_bench)
+                Toe(obj, selected_skin, selected_crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length, sign_corner_length, is_first_bench, selected_ignore_expan_poly)
                 doc.recompute()
 
             except ValueError:

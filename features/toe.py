@@ -1,12 +1,12 @@
-import Part
+import Part # type: ignore
 import time
 from utils import design
 
-
+# TODO: Elevation needed only fot the first bench. Next bench toe takes elevation from previous crest3665
 class Toe:
     def __init__(self, obj, skin, crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length,
                  sign_corner_length, is_first_bench, ignore_expan_poly=None):
-        self.Type = "toe"
+        self.Type = "Toe"
         obj.Proxy = self
         obj.addProperty('App::PropertyBool', 'FirstBench', 'Parameters', '').FirstBench = False
         obj.addProperty('App::PropertyLink', 'Skin', 'Base', 'Linked Mesh').Skin = skin

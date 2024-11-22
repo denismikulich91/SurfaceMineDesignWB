@@ -1,59 +1,49 @@
-import Part
 import FreeCAD
-import time
-from utils import design
+from .toe import Toe
+from .crest import Crest
 
+class Bench:
+  def __init__(self, obj, toe_params, crest_params):
+    self.Type = "Bench"
+    obj.Proxy = self
+    obj.addProperty('App::PropertyLink', 'Toe', 'Child Features', 'Linked Toe')
+    obj.addProperty('App::PropertyLink', 'Crest', 'Child Features', 'Linked Crest')
+    obj.addProperty('App::PropertyLength', 'BenchHeight', 'Parameters', '').BenchHeight = '10m'
+    obj.addProperty('App::PropertyAngle', 'FaceAngle', 'Parameters', '')
 
-class Crest:
-    def __init__(self, obj, toe, bench_height, face_angle, bench=None):
-        self.Type = "Crest"
-        obj.Proxy = self
-        obj.addProperty('App::PropertyLink', 'Toe', 'Base', 'Linked Toe').Toe = toe
-        obj.addProperty('App::PropertyLink', 'Bench', 'Base', 'Linked Bench').Bench = bench
-        obj.addProperty('App::PropertyLength', 'BenchHeight', 'Parameters', '').BenchHeight = '10m'
-        obj.addProperty('App::PropertyAngle', 'FaceAngle', 'Parameters', '')
+    ViewProviderBench(obj.ViewObject)
 
-        ViewProviderCrest(obj.ViewObject)
+    toe_obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', 'Toe')
+    crest_obj = FreeCAD.ActiveDocument.addObject('Part::FeaturePython', 'Crest')
+    
+    required_toe_params = {
+      'skin': None,
+      'crest': None,
+      'expansion_option': 3,
+      'berm_width': 0.0,
+      'elevation': 0.0,
+      'min_area': 0.0,
+      'min_mining_width': 0.0,
+      'significant_length': 0.0,
+      'sign_corner_length': 0.0,
+      'is_first_bench': True,
+      'ignore_expan_poly': None,
+    }
 
-        obj.BenchHeight = bench_height
-        obj.FaceAngle = face_angle
+    required_toe_params.update(toe_params)
+    bench_toe = Toe(toe_obj, **required_toe_params)
+    obj.Toe = toe_obj
+    obj.FaceAngle = crest_params['face_angle']
+    obj.BenchHeight = crest_params['bench_height']
 
-    def execute(self, obj):
-        start_time = time.time()
+    bench_crest = Crest(crest_obj, obj.Toe, obj.BenchHeight.Value, obj.FaceAngle.Value)
+    obj.Crest = crest_obj
 
-        crest_elevation = obj.Toe.Shape.Wires[0].Vertexes[0].Z
-        print("crest_elevation: ", crest_elevation)
-        resulted_wires = design.create_crest(obj.Toe.Shape.Wires, crest_elevation, obj.BenchHeight.Value, obj.FaceAngle.Value)
+def execute(self, obj):
+  # Add custom behavior or calculations if needed
+        pass
 
-        obj.Shape = Part.makeCompound(resulted_wires)
-
-        end_time = time.time()
-        print(f"Crest calculation took {(end_time - start_time) * 1000:.6f} milliseconds")
-
-    def onChanged(self, obj, prop):
-        if prop == "Toe":
-            obj.Label = f"crest_bench_{round(obj.Toe.Elevation / 1000)}".split(".")[0]
-
-    def onDelete(self, obj, subelements):
-        """
-        Ensure feature is deleted if the mesh is deleted.
-        """
-        print("Box feature is being deleted due to mesh deletion.")
-        return True  # Allows the deletion of the feature
-
-    def update(self, bench_obj):
-        print("Crest Update")
-        bench_height = bench_obj.BenchHeight.Value
-        face_angle = bench_obj.FaceAngle.Value
-
-        # Update properties on the Crest object
-        self.BenchHeight = bench_height
-        self.FaceAngle = face_angle
-
-
-
-class ViewProviderCrest:
-
+class ViewProviderBench:
     def __init__(self, obj):
         """
         Set this object to the proxy object of the actual view provider
@@ -65,7 +55,12 @@ class ViewProviderCrest:
         obj.LineWidth = 3.0
 
     def attach(self, obj):
+        self.Object = obj.Object
         return
+    
+    def claimChildren(self):
+        objs = [self.Object.Toe, self.Object.Crest]
+        return objs
 
     def updateData(self, fp, prop):
         """
@@ -94,9 +89,7 @@ class ViewProviderCrest:
         return mode
 
     def onChanged(self, vp, prop):
-        # print(f"{prop} property is changed")
         return
-        # App.Console.PrintMessage("Change property: " + str(prop) + "\n")
 
     def getIcon(self):
         """
@@ -108,12 +101,12 @@ class ViewProviderCrest:
             static const char * ViewProviderBox_xpm[] = {
             "16 16 6 1",
             "    c None",
-            ".   c #141010",
-            "+   c #615BD2",
-            "@   c #C39D55",
-            "#   c #000000",
-            "$   c #525355",
-            "        ........",
+            ".   c #CCC5CCC",
+            "+   c #CCCCCC",
+            "@   c #CCC5CCC",
+            "#   c #222222",
+            "$   c #444444",
+            " ...    ........",
             "   ......++..+..",
             "   .$$$$$.++..++.",
             "   .$$$$.++..++.",

@@ -1,4 +1,4 @@
-from PySide2 import QtGui, QtCore, QtWidgets
+from PySide2 import QtCore, QtWidgets # type: ignore
 from typing import List, Tuple
 
 
@@ -21,13 +21,11 @@ class CreateCrestDialog(QtWidgets.QDialog):
         layout.addWidget(self.object_label)
         layout.addWidget(self.object_dropdown)
 
-        # Elevation input
         self.bench_height_label = QtWidgets.QLabel("Bench height", self)
         self.bench_height_input = QtWidgets.QLineEdit("10", self)
         layout.addWidget(self.bench_height_label)
         layout.addWidget(self.bench_height_input)
 
-        # Minimum Mining Width input (with default value)
         self.face_angle_label = QtWidgets.QLabel("Face angle", self)
         self.face_angle_input = QtWidgets.QLineEdit("75", self)
         layout.addWidget(self.face_angle_label)

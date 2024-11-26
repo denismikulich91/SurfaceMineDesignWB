@@ -5,18 +5,25 @@ from utils import design
 
 
 class Crest:
-    def __init__(self, obj, toe, bench_height, face_angle, bench=None):
+    def __init__(self, obj, toe, bench_height, face_angle, child=False):
         self.Type = "Crest"
         obj.Proxy = self
         obj.addProperty('App::PropertyLink', 'Toe', 'Base', 'Linked Toe').Toe = toe
-        obj.addProperty('App::PropertyLink', 'Bench', 'Base', 'Linked Bench').Bench = bench
         obj.addProperty('App::PropertyLength', 'BenchHeight', 'Parameters', '').BenchHeight = '10m'
         obj.addProperty('App::PropertyAngle', 'FaceAngle', 'Parameters', '')
+        obj.addProperty('App::PropertyBool', 'Child', 'Parameters', '').Child = child
 
         ViewProviderCrest(obj.ViewObject)
 
         obj.BenchHeight = bench_height
         obj.FaceAngle = face_angle
+
+        editing_mode = 2 if child else 0
+        obj.setEditorMode("BenchHeight", editing_mode)
+        obj.setEditorMode("FaceAngle", editing_mode)
+        obj.setEditorMode("Toe", editing_mode)
+        obj.setEditorMode("Child", 2)
+
 
     def execute(self, obj):
         start_time = time.time()
@@ -32,7 +39,10 @@ class Crest:
 
     def onChanged(self, obj, prop):
         if prop == "Toe":
-            obj.Label = f"crest_bench_{round(obj.Toe.Elevation / 1000)}".split(".")[0]
+            if hasattr(obj, "Child"):
+                if not obj.Child:
+                    obj.Label = f"crest_bench_{round(obj.Toe.Elevation / 1000)}".split(".")[0]
+
 
     def onDelete(self, obj, subelements):
         """
@@ -41,14 +51,14 @@ class Crest:
         print("Box feature is being deleted due to mesh deletion.")
         return True  # Allows the deletion of the feature
 
-    def update(self, bench_obj):
-        print("Crest Update")
-        bench_height = bench_obj.BenchHeight.Value
-        face_angle = bench_obj.FaceAngle.Value
+    # def update(self, bench_obj):
+    #     print("Crest Update")
+    #     bench_height = bench_obj.BenchHeight.Value
+    #     face_angle = bench_obj.FaceAngle.Value
 
-        # Update properties on the Crest object
-        self.BenchHeight = bench_height
-        self.FaceAngle = face_angle
+    #     # Update properties on the Crest object
+    #     self.BenchHeight = bench_height
+    #     self.FaceAngle = face_angle
 
 
 

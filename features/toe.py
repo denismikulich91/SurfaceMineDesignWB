@@ -5,7 +5,7 @@ from utils import design
 # TODO: Elevation needed only fot the first bench. Next bench toe takes elevation from previous crest3665
 class Toe:
     def __init__(self, obj, skin, crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length,
-                 sign_corner_length, is_first_bench, ignore_expan_poly=None):
+                 sign_corner_length, is_first_bench, ignore_expan_poly=None, child=False):
         self.Type = "Toe"
         obj.Proxy = self
         obj.addProperty('App::PropertyBool', 'FirstBench', 'Parameters', '').FirstBench = False
@@ -20,6 +20,7 @@ class Toe:
         obj.addProperty('App::PropertyLength', 'SignificantCornerLength', 'Shape', '').SignificantCornerLength = '0m'
         obj.addProperty('App::PropertyLength', 'MinimumMiningWidth', 'Parameters', '').MinimumMiningWidth = '0m'
         obj.addProperty('App::PropertyInteger', 'SmoothingRatio', 'Shape', '').SmoothingRatio = 2
+        obj.addProperty('App::PropertyBool', 'Child', 'Parameters', '').Child = child
 
         obj.Elevation = elevation
         obj.MinimumMiningWidth = min_mining_width
@@ -29,6 +30,22 @@ class Toe:
         obj.BermWidth = berm_width
         obj.ExpansionOption = expansion_option
         obj.MinimumArea = min_area
+
+        editing_mode = 2 if child else 0
+        obj.setEditorMode("FirstBench", editing_mode)
+        obj.setEditorMode("Elevation", editing_mode)
+        obj.setEditorMode("Skin", editing_mode)
+        obj.setEditorMode("Crest", editing_mode)
+        obj.setEditorMode("ExpansionIgnorePolygon", editing_mode)
+        obj.setEditorMode("ExpansionOption", editing_mode)
+        obj.setEditorMode("BermWidth", editing_mode)
+        obj.setEditorMode("MinimumArea", editing_mode)
+        obj.setEditorMode("SignificantLength", editing_mode)
+        obj.setEditorMode("SignificantCornerLength", editing_mode)
+        obj.setEditorMode("MinimumMiningWidth", editing_mode)
+        obj.setEditorMode("SmoothingRatio", editing_mode)
+
+        obj.setEditorMode("Child", 2)
 
 
     def execute(self, obj):
@@ -68,8 +85,9 @@ class Toe:
 
     def onChanged(self, obj, prop):
         if prop == "Elevation":
-            print(f"{prop} property is changed, feature renamed to bench_{obj.Elevation}")
-            obj.Label = f"toe_bench_{round(obj.Elevation / 1000)}".split(".")[0]
+            if hasattr(obj, "Child"):
+                if not obj.Child:
+                    obj.Label = f"toe_bench_{round(obj.Elevation / 1000)}".split(".")[0]
 
     def onDelete(self, obj, subelements):
         """

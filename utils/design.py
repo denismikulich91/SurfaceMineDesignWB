@@ -21,7 +21,7 @@ def create_first_bench_toe(shell_intersection: List[List[Vector]], min_area: flo
         elif min_area > geometry.get_area(polygon):
             print("WARNING: polygon area is smaller then min_polygon parameter")
             continue
-        print("area: ", geometry.get_area(polygon))
+        # print("area: ", geometry.get_area(polygon))
         edges_mid_point_polygon = geometry.create_edges_mid_point_polygon(polygon)
         filtered_polygon = geometry.filter_2d_intersection_points(polygon, edges_mid_point_polygon, significant_length, significant_corner_length, min_mining_width) 
         smoothed_polygon = geometry.chaikin_smooth_polygon(filtered_polygon, smooth_ratio)
@@ -48,7 +48,7 @@ def create_toe_no_expansion(crest_polygons: List[List[Vector]], elevation: float
     crest_polygons_2d_dict = geometry.mark_internal_polygons(crest_polygons_2d)
     for polygon_data in crest_polygons_2d_dict:
         polygons_2d_offset = geometry.create_polygon_2d_offset(polygon_data.polygon, polygon_data.is_internal, 0.0, 0.0, berm_width)
-        print("check area: ", geometry.get_area(polygon_data.polygon))
+        # print("check area: ", geometry.get_area(polygon_data.polygon))
         if len(polygon_data.polygon) < 3:
             print("WARNING: Skipping invalid polygon with less than 3 distinct points")
             continue
@@ -88,7 +88,7 @@ def create_toe_with_expansion(shell_intersection: List[List[Vector]], crest_poly
                 result = geometry.substract_2d_polygons(ignoring_polygons, intersection_polygon.polygon, cut_option=True)
                 if len(result) >0:
                     intersection_polygon.polygon = result[0]
-                    print("partial expansion skin cut detected, length: ", len(result))
+                    # print("partial expansion skin cut detected, length: ", len(result))
                 else:
                     continue
         
@@ -103,7 +103,7 @@ def create_toe_with_expansion(shell_intersection: List[List[Vector]], crest_poly
             for expansion_polygon in toe_no_expansion_polygons_2d_dict:
                 if expansion_polygon.is_internal:
                     result = geometry.substract_2d_polygons(internal_intersection_polygon, expansion_polygon.polygon)
-                    print("substract_2d_polygons")
+                    # print("substract_2d_polygons")
                     for polygon in result:
                         if len(polygon) > 3 and geometry.get_area(polygon) > min_area:
                             resulted_wires.append(Part.makePolygon(coords2d_to_wire(polygon, elevation)))

@@ -3,6 +3,7 @@ import FreeCADGui as Gui
 from commands.create_toe import CreateToe
 from commands.create_crest import CreateCrest
 from commands.create_bench import CreateBench
+from commands.create_pit import CreatePit
 
 
 class SurfaceMineDesign (Workbench):
@@ -17,7 +18,7 @@ class SurfaceMineDesign (Workbench):
         It is executed once in a FreeCAD session followed by the Activated function.
         """
 
-        self.list = ["CreateToe", "CreateCrest", "CreateBench"]  # a list of command names created in the line above
+        self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit"]  # a list of command names created in the line above
         self.appendToolbar("SurfaceMineDesignWorkbench", self.list)  # creates a new toolbar with your commands
 
 

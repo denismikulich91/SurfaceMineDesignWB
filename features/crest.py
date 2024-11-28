@@ -29,7 +29,6 @@ class Crest:
         start_time = time.time()
 
         crest_elevation = obj.Toe.Shape.Wires[0].Vertexes[0].Z
-        print("crest_elevation: ", crest_elevation)
         resulted_wires = design.create_crest(obj.Toe.Shape.Wires, crest_elevation, obj.BenchHeight.Value, obj.FaceAngle.Value)
 
         obj.Shape = Part.makeCompound(resulted_wires)
@@ -75,6 +74,7 @@ class ViewProviderCrest:
         obj.LineWidth = 3.0
 
     def attach(self, obj):
+        self.Object = obj.Object
         return
 
     def updateData(self, fp, prop):
@@ -103,10 +103,8 @@ class ViewProviderCrest:
         """
         return mode
 
-    def onChanged(self, vp, prop):
-        # print(f"{prop} property is changed")
+    def onChanged(self, obj, prop):
         return
-        # App.Console.PrintMessage("Change property: " + str(prop) + "\n")
 
     def getIcon(self):
         """

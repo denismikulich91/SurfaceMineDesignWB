@@ -1,7 +1,7 @@
 import FreeCAD
 from .toe import Toe
 from .crest import Crest
-# TODO: No attribute propagation to the toes and crests
+
 class Bench:
     def __init__(self, obj, toe_params, crest_params):
         self.Type = "Bench"
@@ -43,7 +43,7 @@ class Bench:
         obj.SignificantCornerLength = toe_params["sign_corner_length"]
         obj.MinimumMiningWidth = toe_params["min_mining_width"]
 
-        bench_toe = Toe(toe_obj, obj.Skin, obj.BenchCrest, obj.ExpansionOption, obj.BermWidth.Value, obj.Elevation.Value, obj.MinimumArea.Value,
+        bench_toe = Toe(toe_obj, obj.Skin, obj.Crest, obj.ExpansionOption, obj.BermWidth.Value, obj.Elevation.Value, obj.MinimumArea.Value,
                         obj.MinimumMiningWidth.Value, obj.SignificantLength.Value, obj.SignificantCornerLength.Value, obj.FirstBench,
                         obj.ExpansionIgnorePolygon, child=True)
 
@@ -53,42 +53,71 @@ class Bench:
     def execute(self, obj):
     # Add custom behavior or calculations if needed
             pass
-
+    # TODO: fix update errors from console
     def onChanged(self, obj, prop):
         if prop == "Elevation":
-            print(f"{prop} property is changed, feature renamed to bench_{obj.Elevation}")
+            # print(f"{prop} property is changed, feature renamed to bench_{obj.Elevation}")
             obj.Label = f"bench_{round(obj.Elevation / 1000)}".split(".")[0]
             if hasattr(obj, "BenchToe") and hasattr(obj.BenchToe, "Elevation"):
                 obj.BenchToe.Elevation = obj.Elevation
 
-        if hasattr(obj, "BenchCrest"):
-            if obj.BenchCrest:
+        if hasattr(obj, "BenchCrest") and obj.BenchCrest:
+            if prop == "BenchHeight":
                 obj.BenchCrest.BenchHeight = obj.BenchHeight
+            if prop == "FaceAngle":
                 obj.BenchCrest.FaceAngle = obj.FaceAngle
 
-        if hasattr(obj, "BenchToe"):
-            obj.BenchToe.FirstBench = obj.FirstBench
-            obj.BenchToe.Skin = obj.Skin
-            obj.BenchToe.Crest = obj.Crest
-            obj.BenchToe.ExpansionOption = obj.ExpansionOption
-            obj.BenchToe.BermWidth = obj.BermWidth
-            obj.BenchToe.MinimumArea = obj.MinimumArea
-            obj.BenchToe.MinimumMiningWidth = obj.MinimumMiningWidth
-            obj.BenchToe.SignificantLength = obj.SignificantLength
-            obj.BenchToe.SignificantCornerLength = obj.SignificantCornerLength
-            obj.BenchToe.ExpansionIgnorePolygon = obj.ExpansionIgnorePolygon
-            obj.BenchToe.SmoothingRatio = obj.SmoothingRatio
+        if hasattr(obj, "BenchToe") and obj.BenchToe:
+            if prop == "FirstBench":
+                obj.BenchToe.FirstBench = obj.FirstBench
+            if prop == "Skin":
+                obj.BenchToe.Skin = obj.Skin
+            if prop == "Crest":
+                obj.BenchToe.Crest = obj.Crest
+            if prop == "ExpansionOption":
+                obj.BenchToe.ExpansionOption = obj.ExpansionOption
+            if prop == "BermWidth":
+                obj.BenchToe.BermWidth = obj.BermWidth
+            if prop == "BermWidth":
+                obj.BenchToe.MinimumArea = obj.MinimumArea
+            if prop == "MinimumMiningWidth":
+                obj.BenchToe.MinimumMiningWidth = obj.MinimumMiningWidth
+            if prop == "SignificantLength":    
+                obj.BenchToe.SignificantLength = obj.SignificantLength
+            if prop == "SignificantCornerLength":
+                obj.BenchToe.SignificantCornerLength = obj.SignificantCornerLength
+            if prop == "ExpansionIgnorePolygon":
+                obj.BenchToe.ExpansionIgnorePolygon = obj.ExpansionIgnorePolygon
+            if prop == "SmoothingRatio":
+                obj.BenchToe.SmoothingRatio = obj.SmoothingRatio
 
 class ViewProviderBench:
     def __init__(self, obj):
-        """
-        Set this object to the proxy object of the actual view provider
-        """
         obj.Proxy = self
-        obj.LineColor = (150, 35, 100)
+
+        obj.addProperty("App::PropertyColor", "ToeColor", "Appearance", "Toe Color").ToeColor = (255, 0, 255)
+        obj.addProperty("App::PropertyColor", "CrestColor", "Appearance", "Crest Color").CrestColor = (150, 35, 100)
+
+        obj.addProperty("App::PropertyColor", "ToePointColor", "Appearance", "Toe Point Color").ToePointColor = obj.ToeColor
+        obj.addProperty("App::PropertyColor", "CrestPointColor", "Appearance", "Crest Point Color").CrestPointColor = obj.CrestColor
+
+        obj.addProperty('App::PropertyFloat', 'ToeLineWidth', 'Appearance', 'Toe Line Width').ToeLineWidth = 2.0
+        obj.addProperty('App::PropertyFloat', 'CrestLineWidth', 'Appearance', 'Crest Line Width').CrestLineWidth = 3.0
+
+        obj.addProperty('App::PropertyEnumeration', 'ToeDrawStyle', 'Appearance', 'Toe Draw Style')
+        obj.ToeDrawStyle = ["Solid", "Dashed", "Dotted"]
+        obj.ToeDrawStyle = "Solid"
+
+        obj.addProperty('App::PropertyEnumeration', 'CrestDrawStyle', 'Appearance', 'Crest Draw Style')
+        obj.CrestDrawStyle = ["Solid", "Dashed", "Dotted"]
+        obj.CrestDrawStyle = "Solid"
+        obj.setEditorMode("LineColor", 2)
+        obj.setEditorMode("PointColor", 2)
+        obj.setEditorMode("LineWidth", 2)
+        obj.setEditorMode("DrawStyle", 2)
+        obj.setEditorMode("ToePointColor", 2)
+        obj.setEditorMode("CrestPointColor", 2)
         obj.PointSize = 5
-        obj.PointColor = (150, 35, 100)
-        obj.LineWidth = 3.0
 
     def attach(self, obj):
         self.Object = obj.Object
@@ -124,8 +153,36 @@ class ViewProviderBench:
         """
         return mode
 
-    def onChanged(self, vp, prop):
-        return
+    def onChanged(self, obj, prop):
+        bench_object = self.Object
+
+        # Propagate LineColor to Toe and Crest
+        if prop == "CrestColor":
+            if hasattr(bench_object.BenchCrest, "ViewObject"):
+                bench_object.BenchCrest.ViewObject.LineColor = obj.CrestColor
+                bench_object.BenchCrest.ViewObject.PointColor = obj.CrestColor
+        if prop == "ToeColor":
+            if hasattr(bench_object.BenchToe, "ViewObject"):
+                bench_object.BenchToe.ViewObject.LineColor = obj.ToeColor
+                bench_object.BenchToe.ViewObject.PointColor = obj.ToeColor
+        if prop == "CrestLineWidth":
+            if hasattr(bench_object.BenchCrest, "ViewObject"):
+                bench_object.BenchCrest.ViewObject.LineWidth = obj.CrestLineWidth
+        if prop == "ToeLineWidth":
+            if hasattr(bench_object.BenchToe, "ViewObject"):
+                bench_object.BenchToe.ViewObject.LineWidth = obj.ToeLineWidth
+        if prop == "PointSize":
+            if hasattr(bench_object.BenchToe, "ViewObject"):
+                bench_object.BenchToe.ViewObject.PointSize = obj.PointSize
+            if hasattr(bench_object.BenchCrest, "ViewObject"):
+                bench_object.BenchCrest.ViewObject.PointSize = obj.PointSize
+        if prop == "CrestDrawStyle":
+            if hasattr(bench_object.BenchCrest, "ViewObject"):
+                bench_object.BenchCrest.ViewObject.DrawStyle = obj.CrestDrawStyle
+        if prop == "ToeDrawStyle":
+            if hasattr(bench_object.BenchToe, "ViewObject"):
+                bench_object.BenchToe.ViewObject.DrawStyle = obj.ToeDrawStyle
+
 
     def getIcon(self):
         """

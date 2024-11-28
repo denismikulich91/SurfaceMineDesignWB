@@ -35,7 +35,7 @@ class Toe:
         obj.setEditorMode("FirstBench", editing_mode)
         obj.setEditorMode("Elevation", editing_mode)
         obj.setEditorMode("Skin", editing_mode)
-        obj.setEditorMode("Crest", editing_mode)
+        obj.setEditorMode("Crest", 0)
         obj.setEditorMode("ExpansionIgnorePolygon", editing_mode)
         obj.setEditorMode("ExpansionOption", editing_mode)
         obj.setEditorMode("BermWidth", editing_mode)
@@ -66,13 +66,12 @@ class Toe:
             if obj.ExpansionOption == 3:
                 resulted_wires = design.create_toe_no_expansion(obj.Crest.Shape.Wires, obj.Elevation.Value, obj.BermWidth.Value, obj.MinimumArea.Value)
             elif obj.ExpansionOption == 2:
-                # TODO: partial expansion
-                print("Here will be a partial expansion option developed")
+                # print("Here will be a partial expansion option developed")
                 resulted_wires = design.create_toe_with_expansion(result[0], obj.Crest.Shape.Wires, obj.BermWidth.Value, obj.MinimumArea.Value, 
                                                     obj.SignificantLength.Value, obj.SignificantCornerLength.Value, obj.MinimumMiningWidth.Value, 
                                                     obj.SmoothingRatio, obj.Elevation.Value, obj.ExpansionIgnorePolygon.Shape.Wires)
             else:
-                print("shell expansion option")
+                # print("shell expansion option")
                 resulted_wires = design.create_toe_with_expansion(result[0], obj.Crest.Shape.Wires, obj.BermWidth.Value, obj.MinimumArea.Value, 
                                                                   obj.SignificantLength.Value, obj.SignificantCornerLength.Value, obj.MinimumMiningWidth.Value, 
                                                                   obj.SmoothingRatio, obj.Elevation.Value)
@@ -110,6 +109,7 @@ class ViewProviderToe:
         obj.LineWidth = 2.0
 
     def attach(self, obj):
+        self.Object = obj.Object
         return
 
     def updateData(self, fp, prop):
@@ -138,10 +138,8 @@ class ViewProviderToe:
         """
         return mode
 
-    def onChanged(self, vp, prop):
-        # print(f"{prop} property is changed")
+    def onChanged(self, obj, prop):
         return
-        # App.Console.PrintMessage("Change property: " + str(prop) + "\n")
 
     def getIcon(self):
         """

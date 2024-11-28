@@ -226,12 +226,43 @@ def chaikin_smooth_polygon(polygon: List[Tuple[float, float]], num_iterations: i
     return polygon
 
 
+def is_significant(p1, p2, p3, tol):
+    # Compute cross-product to check angular deviation
+    dx1, dy1 = p2[0] - p1[0], p2[1] - p1[1]
+    dx2, dy2 = p3[0] - p2[0], p3[1] - p2[1]
+    cross = abs(dx1 * dy2 - dy1 * dx2)
+    return cross > tol
+    
+def simplify_polygon_coords(coords: List[Tuple[float, float]], tol: float) -> List[Tuple[float, float]]:
+
+    simplified = [coords[0]]
+    for i in range(1, len(coords) - 1):
+        if is_significant(coords[i - 1], coords[i], coords[i + 1], tol):
+            simplified.append(coords[i])
+    simplified.append(coords[-1])  # Add the last point
+    return simplified
+
+
 def create_polygon_2d_offset(polygon: List[Tuple[float, float]], 
                              is_internal: bool, 
                              projection_height: float = 0.0, 
                              face_angle: float = 0.0, 
-                             offset_length: float = 0.0) -> List[List[Tuple[float, float]]]:
-
+                             offset_length: float = 0.0, 
+                             simplify_tolerance: float = 150, 
+                             corner_tolerance: float = 150) -> List[List[Tuple[float, float]]]:
+    """
+    Create a 2D offset polygon with reduced corner points and globally simplified geometry.
+    Args:
+        polygon: List of (x, y) tuples defining the input polygon.
+        is_internal: Boolean flag indicating if the offset is internal.
+        projection_height: Height of the projection for face angle calculation.
+        face_angle: Face angle in degrees.
+        offset_length: Fixed offset distance. Overrides face angle and height if provided.
+        simplify_tolerance: Tolerance for global simplification of the geometry.
+        corner_tolerance: Tolerance for simplifying corner points.
+    Returns:
+        List of simplified (x, y) coordinates for the offset polygon.
+    """
     shapely_polygon = Polygon(polygon)
     offset_direction = -1 if is_internal else 1
     
@@ -243,21 +274,35 @@ def create_polygon_2d_offset(polygon: List[Tuple[float, float]],
         offset_distance = offset_length
 
     # Create the offset polygon
-    offset_polygon = shapely_polygon.buffer(offset_distance * offset_direction, join_style='bevel')
+    offset_polygon = shapely_polygon.buffer(
+        offset_distance * offset_direction,
+        join_style='bevel'  # Mitre join for sharp corners
+    )
 
-    # Extract outer and inner boundaries
+    # Apply global simplification using simplify_tolerance
+    if simplify_tolerance > 0:
+        offset_polygon = offset_polygon.simplify(simplify_tolerance, preserve_topology=True)
+
+    # Extract and process the final geometry
     result = []
     if offset_polygon.is_empty:
         return result
 
     if offset_polygon.geom_type == 'Polygon':
-        result.append(list(offset_polygon.exterior.coords))
-        result.extend([list(interior.coords) for interior in offset_polygon.interiors])
+        # Simplify exterior and interior coordinates
+        result.append(simplify_polygon_coords(list(offset_polygon.exterior.coords), corner_tolerance))
+        result.extend(
+            [simplify_polygon_coords(list(interior.coords), corner_tolerance)
+             for interior in offset_polygon.interiors]
+        )
     elif offset_polygon.geom_type == 'MultiPolygon':
         # Handle MultiPolygon by extracting all components
         for poly in offset_polygon.geoms:
-            result.append(list(poly.exterior.coords))
-            result.extend([list(interior.coords) for interior in poly.interiors])
+            result.append(simplify_polygon_coords(list(poly.exterior.coords), corner_tolerance))
+            result.extend(
+                [simplify_polygon_coords(list(interior.coords), corner_tolerance)
+                 for interior in poly.interiors]
+            )
     else:
         raise ValueError("Offset operation resulted in unexpected geometry type.")
     return result
@@ -269,24 +314,24 @@ def get_area(polygon: List[Tuple[float, float]]) -> float:
 
 
 def join_2d_polygons(first_polygon: List[Tuple[float, float]], second_polygon: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
-    print("join_2d_polygons")
+    # print("join_2d_polygons")
     shapely_first_polygon = Polygon(first_polygon)
     shapely_second_polygon = Polygon(second_polygon)
     if shapely_first_polygon.contains(shapely_second_polygon):
-        print("contains")
+        # print("contains")
         return list(shapely_first_polygon.exterior.coords)
     
     elif shapely_second_polygon.contains(shapely_first_polygon):
-        print("contained")
+        # print("contained")
         return list(shapely_second_polygon.exterior.coords)
     
     elif shapely_first_polygon.intersects(shapely_second_polygon):  # They intersect
         union_polygon = shapely_first_polygon.union(shapely_second_polygon)
-        print("intersects")
+        # print("intersects")
         return list(union_polygon.exterior.coords)
     
     else:
-        print("other")
+        # print("other")
         return list(shapely_first_polygon.exterior.coords)
     
 
@@ -319,9 +364,9 @@ def substract_2d_polygons(first_polygon: List[Tuple[float, float]], second_polyg
             return result  # No resulting polygon
         elif difference_polygon.geom_type == 'Polygon':
             result.append(list(difference_polygon.exterior.coords))
-            print("result type: polygon")
+            # print("result type: polygon")
         elif difference_polygon.geom_type == 'MultiPolygon':
-            print("result type: multipolygon")
+            # print("result type: multipolygon")
             for poly in difference_polygon.geoms:
                 result.append(list(poly.exterior.coords))
         else:

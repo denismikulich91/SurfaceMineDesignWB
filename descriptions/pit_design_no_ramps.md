@@ -44,7 +44,7 @@ https://github.com/user-attachments/assets/5a51393b-d0da-4dca-a1a3-2df4b3fa522e
 
 The **toe** is the most intricate feature in the workbench, forming the foundation for crest generation. Below is an overview of the **toe generation algorithm**:
 
-1. **Intersection with Optimization Result**: Calculate the intersection of the optimization shell with the design.
+1. **Intersection with Optimization Result**: Calculate the intersection of the optimization shell with bench level.
 2. **Midpoint Creation**: For each edge in the intersection, create a midpoint.
 3. **Toe Vertex List (TVL)**:
    - Combine the midpoints into a closed polygon.

@@ -50,16 +50,6 @@ class Crest:
         print("Box feature is being deleted due to mesh deletion.")
         return True  # Allows the deletion of the feature
 
-    # def update(self, bench_obj):
-    #     print("Crest Update")
-    #     bench_height = bench_obj.BenchHeight.Value
-    #     face_angle = bench_obj.FaceAngle.Value
-
-    #     # Update properties on the Crest object
-    #     self.BenchHeight = bench_height
-    #     self.FaceAngle = face_angle
-
-
 
 class ViewProviderCrest:
 
@@ -72,7 +62,6 @@ class ViewProviderCrest:
         obj.PointSize = 5
         obj.PointColor = (150, 35, 100)
         obj.LineWidth = 3.0
-        print("Crest props updated")
 
     def attach(self, obj):
         self.Object = obj.Object
@@ -113,31 +102,71 @@ class ViewProviderCrest:
         """
 
         return """
-            /* XPM */
-            static const char * ViewProviderBox_xpm[] = {
-            "16 16 6 1",
-            "    c None",
-            ".   c #141010",
-            "+   c #615BD2",
-            "@   c #C39D55",
-            "#   c #000000",
-            "$   c #525355",
-            "        ........",
-            "   ......++..+..",
-            "   .$$$$$.++..++.",
-            "   .$$$$.++..++.",
-            "   .@@  .++++++.",
-            "  ..@@  .++..++.",
-            "###@@@@ .++..++.",
-            "##$.@@$#.++++++.",
-            "#$#$.$$$........",
-            "#$$#######      ",
-            "#$$#$$$$$#      ",
-            "#$$#$$$$$#      ",
-            "#$$#$$$$$#      ",
-            " #$#$$$$$#      ",
-            "  ##$$$$$#      ",
-            "   #######      "};
+        /* XPM */
+        static char * crest_xpm[] = {
+        "25 25 37 1",
+        " 	c #FFFFFF",
+        ".	c #FEFEFE",
+        "+	c #BEB8C4",
+        "@	c #745E84",
+        "#	c #4C0867",
+        "$	c #BFB9C5",
+        "%	c #562D6B",
+        "&	c #5D3C6F",
+        "*	c #C1BBC5",
+        "=	c #867792",
+        "-	c #7C6A8A",
+        ";	c #9A909F",
+        ">	c #7B6988",
+        ",	c #877993",
+        "'	c #EBEAED",
+        ")	c #B6AFBC",
+        "!	c #B2ABB9",
+        "~	c #EAE8EB",
+        "{	c #E1DFE4",
+        "]	c #501A69",
+        "^	c #4C0767",
+        "/	c #58306F",
+        "(	c #E0DEE3",
+        "_	c #988CA2",
+        ":	c #52256A",
+        "<	c #6D5777",
+        "[	c #715D79",
+        "}	c #6F5A79",
+        "|	c #CFCBD3",
+        "1	c #FAFAFB",
+        "2	c #8F829B",
+        "3	c #FAFAFA",
+        "4	c #C1BBC6",
+        "5	c #644773",
+        "6	c #6B5476",
+        "7	c #674E76",
+        "8	c #C0BAC5",
+        "                         ",
+        "                         ",
+        "  .+@###############@$.  ",
+        "  +#%&&&&&&&&&&&&&&&%#*  ",
+        "  =-;;;;;;;;;;;;;;;;;>,  ",
+        "                         ",
+        "                         ",
+        "                         ",
+        "                         ",
+        "     ')!!!!!!!!!!!)~     ",
+        "    {]#^^^^^^^^^^^#/(    ",
+        "    _:<[[[[[[[[[[[}:_    ",
+        "                         ",
+        "                         ",
+        "                         ",
+        "                         ",
+        "         {|||||{         ",
+        "       12#######23       ",
+        "       4#5666667#8       ",
+        "                         ",
+        "                         ",
+        "                         ",
+        "                         ",
+        "                         ",
+        "                         "};
             """
 
 

@@ -55,43 +55,44 @@ class Bench:
             pass
     # TODO: fix update errors from console
     def onChanged(self, obj, prop):
+        # Check and handle property changes for `Elevation`
         if prop == "Elevation":
-            # print(f"{prop} property is changed, feature renamed to bench_{obj.Elevation}")
             obj.Label = f"bench_{round(obj.Elevation / 1000)}".split(".")[0]
             if hasattr(obj, "BenchToe") and hasattr(obj.BenchToe, "Elevation"):
                 obj.BenchToe.Elevation = obj.Elevation
 
+        # Update BenchCrest properties if initialized
         if hasattr(obj, "BenchCrest") and obj.BenchCrest:
             if prop == "BenchHeight":
                 obj.BenchCrest.BenchHeight = obj.BenchHeight
             if prop == "FaceAngle":
                 obj.BenchCrest.FaceAngle = obj.FaceAngle
 
+        # Update BenchToe properties if initialized
         if hasattr(obj, "BenchToe") and obj.BenchToe:
-            if prop == "FirstBench":
+            if prop == "FirstBench" and hasattr(obj.BenchToe, "FirstBench"):
                 obj.BenchToe.FirstBench = obj.FirstBench
-            if prop == "Skin":
+            if prop == "Skin" and hasattr(obj.BenchToe, "Skin"):
                 obj.BenchToe.Skin = obj.Skin
-            if prop == "Crest":
+            if prop == "Crest" and hasattr(obj.BenchToe, "Crest"):
                 obj.BenchToe.Crest = obj.Crest
-            if prop == "ExpansionOption":
+            if prop == "ExpansionOption" and hasattr(obj.BenchToe, "ExpansionOption"):
                 obj.BenchToe.ExpansionOption = obj.ExpansionOption
-            if prop == "BermWidth":
+            if prop == "BermWidth" and hasattr(obj.BenchToe, "BermWidth"):
                 obj.BenchToe.BermWidth = obj.BermWidth
-            if prop == "BermWidth":
+            if prop == "MinimumArea" and hasattr(obj.BenchToe, "MinimumArea"):
                 obj.BenchToe.MinimumArea = obj.MinimumArea
-            if prop == "MinimumMiningWidth":
+            if prop == "MinimumMiningWidth" and hasattr(obj.BenchToe, "MinimumMiningWidth"):
                 obj.BenchToe.MinimumMiningWidth = obj.MinimumMiningWidth
-            if prop == "SignificantLength":    
+            if prop == "SignificantLength" and hasattr(obj.BenchToe, "SignificantLength"):
                 obj.BenchToe.SignificantLength = obj.SignificantLength
-            if prop == "SignificantCornerLength":
+            if prop == "SignificantCornerLength" and hasattr(obj.BenchToe, "SignificantCornerLength"):
                 obj.BenchToe.SignificantCornerLength = obj.SignificantCornerLength
-            if prop == "ExpansionIgnorePolygon":
+            if prop == "ExpansionIgnorePolygon" and hasattr(obj.BenchToe, "ExpansionIgnorePolygon"):
                 obj.BenchToe.ExpansionIgnorePolygon = obj.ExpansionIgnorePolygon
-            if prop == "SmoothingRatio":
+            if prop == "SmoothingRatio" and hasattr(obj.BenchToe, "SmoothingRatio"):
                 obj.BenchToe.SmoothingRatio = obj.SmoothingRatio
-            if prop == "MinimumArea":
-                obj.BenchToe.MinimumArea = obj.MinimumArea
+
 
 class ViewProviderBench:
     def __init__(self, obj):

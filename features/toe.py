@@ -57,7 +57,7 @@ class Toe:
             result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
 
         if obj.FirstBench:
-            resulted_wires = design.create_first_bench_toe(result[0], obj.SignificantLength.Value, obj.MinimumArea.Value,
+            resulted_wires = design.create_first_bench_toe(result[0], obj.MinimumArea.Value, obj.SignificantLength.Value,
                                                            obj.SignificantCornerLength.Value,
                                                            obj.MinimumMiningWidth.Value, obj.SmoothingRatio,
                                                            obj.Elevation.Value)
@@ -106,7 +106,6 @@ class ViewProviderToe:
         obj.PointSize = 4
         obj.PointColor = (255, 0, 200)
         obj.LineWidth = 2.0
-        print("Toe props updated")
 
     def attach(self, obj):
         self.Object = obj.Object
@@ -148,30 +147,38 @@ class ViewProviderToe:
 
         return """
             /* XPM */
-            static const char * ViewProviderBox_xpm[] = {
-            "16 16 6 1",
-            "    c None",
-            ".   c #141010",
-            "+   c #615BD2",
-            "@   c #C39D55",
-            "#   c #000000",
-            "$   c #57C355",
-            "        ........",
-            "   ......++..+..",
-            "   .@@@@.++..++.",
-            "   .@@@@.++..++.",
-            "   .@@  .++++++.",
-            "  ..@@  .++..++.",
-            "###@@@@ .++..++.",
-            "##$.@@$#.++++++.",
-            "#$#$.$$$........",
-            "#$$#######      ",
-            "#$$#$$$$$#      ",
-            "#$$#$$$$$#      ",
-            "#$$#$$$$$#      ",
-            " #$#$$$$$#      ",
-            "  ##$$$$$#      ",
-            "   #######      "};
+            static char * toe_xpm[] = {
+            "25 25 5 1",
+            " 	c #FFFFFF",
+            ".	c #183A17",
+            "+	c #FBFBFB",
+            "@	c #F6F6F6",
+            "#	c #FBFCFB",
+            "                         ",
+            "                         ",
+            "                         ",
+            "                         ",
+            "                         ",
+            "  .....................  ",
+            "  .....................  ",
+            "   ...................   ",
+            "                         ",
+            "                         ",
+            "                         ",
+            "                         ",
+            "                         ",
+            "    .................    ",
+            "    +...............+    ",
+            "      .............      ",
+            "                         ",
+            "                         ",
+            "                         ",
+            "                         ",
+            "       ...........       ",
+            "       @.........@       ",
+            "        #.......#        ",
+            "                         ",
+            "                         "};
             """
 
     def dumps(self):

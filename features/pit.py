@@ -72,34 +72,53 @@ class Pit:
     def onChanged(self, obj, prop):
         if prop == "BermWidth":
             for bench in obj.LinkedBenches:
-                bench.BermWidth = obj.BermWidth
+                if hasattr(bench, "BermWidth"):
+                    bench.BermWidth = obj.BermWidth
+
         if prop == "FaceAngle":
             for bench in obj.LinkedBenches:
-                bench.FaceAngle = obj.FaceAngle
+                if hasattr(bench, "FaceAngle"):
+                    bench.FaceAngle = obj.FaceAngle
+
         if prop == "ExpansionOption":
             for bench in obj.LinkedBenches:
-                bench.ExpansionOption = obj.ExpansionOption
+                if hasattr(bench, "ExpansionOption"):
+                    bench.ExpansionOption = obj.ExpansionOption
+
         if prop == "ExpansionIgnorePolygon":
             for bench in obj.LinkedBenches:
-                bench.ExpansionIgnorePolygon = obj.ExpansionIgnorePolygon
+                if hasattr(bench, "ExpansionIgnorePolygon"):
+                    bench.ExpansionIgnorePolygon = obj.ExpansionIgnorePolygon
+
         if prop == "MinimumArea":
             for bench in obj.LinkedBenches:
-                bench.MinimumArea = obj.MinimumArea
+                if hasattr(bench, "MinimumArea"):
+                    bench.MinimumArea = obj.MinimumArea
+
         if prop == "SignificantLength":
             for bench in obj.LinkedBenches:
-                bench.SignificantLength = obj.SignificantLength
+                if hasattr(bench, "SignificantLength"):
+                    bench.SignificantLength = obj.SignificantLength
+
         if prop == "SignificantCornerLength":
             for bench in obj.LinkedBenches:
-                bench.SignificantCornerLength = obj.SignificantCornerLength
+                if hasattr(bench, "SignificantCornerLength"):
+                    bench.SignificantCornerLength = obj.SignificantCornerLength
+
         if prop == "MinimumMiningWidth":
             for bench in obj.LinkedBenches:
-                bench.MinimumMiningWidth = obj.MinimumMiningWidth
+                if hasattr(bench, "MinimumMiningWidth"):
+                    bench.MinimumMiningWidth = obj.MinimumMiningWidth
+
         if prop == "SmoothingRatio":
             for bench in obj.LinkedBenches:
-                bench.SmoothingRatio = obj.SmoothingRatio
+                if hasattr(bench, "SmoothingRatio"):
+                    bench.SmoothingRatio = obj.SmoothingRatio
+
         if prop == "Skin":
             for bench in obj.LinkedBenches:
-                bench.Skin = obj.Skin
+                if hasattr(bench, "Skin"):
+                    bench.Skin = obj.Skin
 
 class ViewProviderPit:
     def __init__(self, obj):
@@ -160,34 +179,48 @@ class ViewProviderPit:
         return mode
 
     def onChanged(self, obj, prop):
+        """
+        React to property changes by propagating updates to linked benches.
+        """
+        if not hasattr(self, "Object") or not hasattr(self.Object, "LinkedBenches"):
+            return  # Ensure initialization is complete
+
+        pit_object = self.Object
+
         if prop == "ToeColor":
-            pit_object = self.Object
             for bench in pit_object.LinkedBenches:
-                bench.ViewObject.ToeColor = obj.ToeColor
+                if hasattr(bench.ViewObject, "ToeColor"):
+                    bench.ViewObject.ToeColor = obj.ToeColor
+
         if prop == "CrestColor":
-            pit_object = self.Object
             for bench in pit_object.LinkedBenches:
-                bench.ViewObject.CrestColor = obj.CrestColor
+                if hasattr(bench.ViewObject, "CrestColor"):
+                    bench.ViewObject.CrestColor = obj.CrestColor
+
         if prop == "ToeLineWidth":
-            pit_object = self.Object
             for bench in pit_object.LinkedBenches:
-                bench.ViewObject.ToeLineWidth = obj.ToeLineWidth
+                if hasattr(bench.ViewObject, "ToeLineWidth"):
+                    bench.ViewObject.ToeLineWidth = obj.ToeLineWidth
+
         if prop == "CrestLineWidth":
-            pit_object = self.Object
             for bench in pit_object.LinkedBenches:
-                bench.ViewObject.CrestLineWidth = obj.CrestLineWidth
+                if hasattr(bench.ViewObject, "CrestLineWidth"):
+                    bench.ViewObject.CrestLineWidth = obj.CrestLineWidth
+
         if prop == "PointSize":
-            pit_object = self.Object
             for bench in pit_object.LinkedBenches:
-                bench.ViewObject.PointSize = obj.PointSize
+                if hasattr(bench.ViewObject, "PointSize"):
+                    bench.ViewObject.PointSize = obj.PointSize
+
         if prop == "ToeDrawStyle":
-            pit_object = self.Object
             for bench in pit_object.LinkedBenches:
-                bench.ViewObject.ToeDrawStyle = obj.ToeDrawStyle
+                if hasattr(bench.ViewObject, "ToeDrawStyle"):
+                    bench.ViewObject.ToeDrawStyle = obj.ToeDrawStyle
+
         if prop == "CrestDrawStyle":
-            pit_object = self.Object
             for bench in pit_object.LinkedBenches:
-                bench.ViewObject.CrestDrawStyle = obj.CrestDrawStyle
+                if hasattr(bench.ViewObject, "CrestDrawStyle"):
+                    bench.ViewObject.CrestDrawStyle = obj.CrestDrawStyle
 
 
     def getIcon(self):

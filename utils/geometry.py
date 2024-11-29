@@ -112,7 +112,6 @@ def create_edges_mid_point_polygon(polygon: List[Tuple[float, float]]) -> List[T
 def filter_2d_intersection_points(polygon_to_filter: List[Tuple[float, float]], filtering_polygon: List[Tuple[float, float]], significant_length: float,
                                   significant_corner_side_length: float, min_mining_width: float) -> List[Tuple[float, float]]:
     resulted_list = []
-
     for i in range(len(polygon_to_filter)):
         start_point = polygon_to_filter[i]
         end_point = polygon_to_filter[(i + 1) % len(polygon_to_filter)]
@@ -138,7 +137,6 @@ def filter_2d_intersection_points(polygon_to_filter: List[Tuple[float, float]], 
             list_with_params_applied.append(first_point)
 
             is_non_ortho = first_point[0] != second_point[0] and first_point[1] != second_point[1]
-
             is_significant_length_horizontal = (
                     abs(first_point[0] - second_point[0]) > significant_length >= abs(first_point[1] - second_point[1]))
 

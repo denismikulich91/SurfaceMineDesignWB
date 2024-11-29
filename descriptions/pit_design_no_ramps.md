@@ -8,6 +8,10 @@ The following video demonstrates the system’s capability, where three pits sea
 
 <video controls src="video/overview.mp4" title="Overview"></video>
 
+
+https://github.com/user-attachments/assets/d3ee50f5-7dbd-4b38-a7b5-657ab3ef7270
+
+
 The structure of the module is outlined below:
 
 ![Structure Overview](pics/structure.png)
@@ -16,6 +20,10 @@ The key graphical features are **toes** and **crests**, while the **pit** and **
 
 <video controls src="video/structure_and_props.mp4" title="Structure and Properties"></video>
 
+
+https://github.com/user-attachments/assets/934d9737-a67a-41b9-a1d3-e47823e636f4
+
+
 This structure offers two key advantages:
 
 - **Logical Organization**: Provides a clear hierarchy for design elements.
@@ -23,7 +31,14 @@ This structure offers two key advantages:
 
 <video controls src="video/struck_and_props_example.mp4" title="Example of Structure and Properties"></video>
 
+
+https://github.com/user-attachments/assets/5a51393b-d0da-4dca-a1a3-2df4b3fa522e
+
+
 ---
+
+
+
 
 ## **Toe Feature**
 

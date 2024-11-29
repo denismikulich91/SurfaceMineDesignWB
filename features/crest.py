@@ -72,6 +72,7 @@ class ViewProviderCrest:
         obj.PointSize = 5
         obj.PointColor = (150, 35, 100)
         obj.LineWidth = 3.0
+        print("Crest props updated")
 
     def attach(self, obj):
         self.Object = obj.Object

@@ -11,11 +11,10 @@ class CreateToe:
     def GetResources(self):
         current_directory = os.path.dirname(os.path.realpath(__file__))
         root_directory = os.path.dirname(current_directory)
-        icon_path = os.path.join(root_directory, "resources", "toe.svg")
+        icon_path = os.path.join(root_directory, "resources", "toe.png")
         return {"Pixmap": icon_path,
-                "Accel": "Shift+T",
-                "MenuText": "My New Command",
-                "ToolTip": "What my new command does"}
+                "MenuText": "Create toe",
+                "ToolTip": "Create toe feature"}
 
     def Activated(self):
 

@@ -22,7 +22,7 @@ class CreatePitDialog(QtWidgets.QDialog):
         layout.addWidget(self.object_dropdown)
 
         self.benches_label = QtWidgets.QLabel("Enter benches", self)
-        self.benches_input = QtWidgets.QLineEdit("3660,3900,20;3920,3960,10", self)
+        self.benches_input = QtWidgets.QLineEdit("3620,4175,15", self)
         layout.addWidget(self.benches_label)
         layout.addWidget(self.benches_input)
 

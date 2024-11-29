@@ -13,9 +13,8 @@ class CreatePit:
         root_directory = os.path.dirname(current_directory)
         icon_path = os.path.join(root_directory, "resources", "pit.svg")
         return {"Pixmap": icon_path,
-                "Accel": "Shift+B",
-                "MenuText": "My New Command2",
-                "ToolTip": "What my new command does"}
+                "MenuText": "Create pit",
+                "ToolTip": "Generates a number of benches"}
 
     def Activated(self):
 

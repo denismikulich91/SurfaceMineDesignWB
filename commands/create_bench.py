@@ -11,11 +11,10 @@ class CreateBench:
     def GetResources(self):
         current_directory = os.path.dirname(os.path.realpath(__file__))
         root_directory = os.path.dirname(current_directory)
-        icon_path = os.path.join(root_directory, "resources", "bench.svg")
+        icon_path = os.path.join(root_directory, "resources", "bench.png")
         return {"Pixmap": icon_path,
-                "Accel": "Shift+B",
-                "MenuText": "My New Command2",
-                "ToolTip": "What my new command does"}
+                "MenuText": "Create bench",
+                "ToolTip": "Create toe and crest feature as bench feature"}
 
     def Activated(self):
 

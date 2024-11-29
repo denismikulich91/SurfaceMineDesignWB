@@ -2,7 +2,6 @@ import Part # type: ignore
 import time
 from utils import design
 
-# TODO: Elevation needed only fot the first bench. Next bench toe takes elevation from previous crest3665
 class Toe:
     def __init__(self, obj, skin, crest, expansion_option, berm_width, elevation, min_area, min_mining_width, significant_length,
                  sign_corner_length, is_first_bench, ignore_expan_poly=None, child=False):
@@ -21,6 +20,8 @@ class Toe:
         obj.addProperty('App::PropertyLength', 'MinimumMiningWidth', 'Parameters', '').MinimumMiningWidth = '0m'
         obj.addProperty('App::PropertyInteger', 'SmoothingRatio', 'Shape', '').SmoothingRatio = 2
         obj.addProperty('App::PropertyBool', 'Child', 'Parameters', '').Child = child
+
+        ViewProviderToe(obj.ViewObject)
 
         obj.Elevation = elevation
         obj.MinimumMiningWidth = min_mining_width
@@ -51,8 +52,6 @@ class Toe:
     def execute(self, obj):
 
         start_time = time.time()
-
-        ViewProviderToe(obj.ViewObject)
 
         if obj.ExpansionOption != 3:
             result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
@@ -107,6 +106,7 @@ class ViewProviderToe:
         obj.PointSize = 4
         obj.PointColor = (255, 0, 200)
         obj.LineWidth = 2.0
+        print("Toe props updated")
 
     def attach(self, obj):
         self.Object = obj.Object

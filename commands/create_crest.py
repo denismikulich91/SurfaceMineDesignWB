@@ -11,11 +11,10 @@ class CreateCrest:
     def GetResources(self):
         current_directory = os.path.dirname(os.path.realpath(__file__))
         root_directory = os.path.dirname(current_directory)
-        icon_path = os.path.join(root_directory, "resources", "crest.svg")
-        return {"Pixmap": icon_path,  # the name of a svg file available in the resources
-                "Accel": "Shift+S",  # a default shortcut (optional)
-                "MenuText": "Crest",
-                "ToolTip": "Creating Crest"}
+        icon_path = os.path.join(root_directory, "resources", "crest.png")
+        return {"Pixmap": icon_path,
+                "MenuText": "Create crest",
+                "ToolTip": "Create crest feature from toe"}
 
     def Activated(self):
 

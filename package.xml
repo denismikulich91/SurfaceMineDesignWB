@@ -13,8 +13,7 @@
       <classname>SurfaceMineDesign</classname>
       <description>Parametric surface mine design tools and more</description>
       <version>0.0.1</version>
-      <subdirectory>./</subdirectory>
-      <icon>resources/icons/workbench.svg</icon>
+      <icon>resources/workbench.svg</icon>
       <freecadmin>1.0.0</freecadmin>
       <depend>shapely</depend>
       <tag>mining</tag>

@@ -6,7 +6,6 @@
   <maintainer email="denismikulich91@gmail.com">Mikulich Denis</maintainer>
   <license file="LICENSE">Free</license>
   <url type="repository" branch="master">https://github.com/denismikulich91/SurfaceMineDesignWB</url>
-  <url type="documentation">https://github.com/denismikulich91/SurfaceMineDesignWB/blob/main/README.md</url>
 
   <content>
     <workbench>

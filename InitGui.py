@@ -8,15 +8,20 @@ from commands.create_pit import CreatePit
 import sys
 import subprocess
 
-# Function to install missing modules
-def install_missing_module(module_name):
+import sys
+import subprocess
+
+def ensure_dependency(module_name):
     try:
         __import__(module_name)
     except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
+        except Exception as e:
+            raise ImportError(f"Could not install the required module: {module_name}. Error: {e}")
 
-# Ensure Shapely is installed
-install_missing_module("shapely")
+# Ensure Shapely is available
+ensure_dependency("shapely")
 
 class SurfaceMineDesign (Workbench):
     def __init__(self):

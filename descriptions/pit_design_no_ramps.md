@@ -6,11 +6,7 @@ The Surface Mine Design Workbench is a powerful tool for designing open-pit mine
 
 The following video demonstrates the system’s capability, where three pits seamlessly join to form an "internal dump" in the middle. This dump projects upward and inward while the rest of the pit expands outward and upward:
 
-<video controls src="video/overview.mp4" title="Overview"></video>
-
-
-https://github.com/user-attachments/assets/d3ee50f5-7dbd-4b38-a7b5-657ab3ef7270
-
+<https://github.com/user-attachments/assets/d3ee50f5-7dbd-4b38-a7b5-657ab3ef7270>
 
 The structure of the module is outlined below:
 
@@ -18,27 +14,14 @@ The structure of the module is outlined below:
 
 The key graphical features are **toes** and **crests**, while the **pit** and **bench** serve as container-like features. A **pit** consists of multiple **benches**, and each bench contains both a toe and a crest. To enhance usability, the parameters of toes and crests are aggregated at the bench level. For example, while the *minimum mining width* is a toe-specific parameter and the *face angle* applies to the crest, both are grouped together under the bench feature for easier parameter management.
 
-<video controls src="video/structure_and_props.mp4" title="Structure and Properties"></video>
-
-
-https://github.com/user-attachments/assets/934d9737-a67a-41b9-a1d3-e47823e636f4
-
+<https://github.com/user-attachments/assets/934d9737-a67a-41b9-a1d3-e47823e636f4>
 
 This structure offers two key advantages:
 
 - **Logical Organization**: Provides a clear hierarchy for design elements.
 - **Parameter Propagation**: Parameters and visual settings can be propagated from parent features to child features. For example, setting a *minimum mining width* in the Pit feature will automatically propagate this value to all benches, while individual benches can override these settings as needed.
 
-<video controls src="video/struck_and_props_example.mp4" title="Example of Structure and Properties"></video>
-
-
-https://github.com/user-attachments/assets/5a51393b-d0da-4dca-a1a3-2df4b3fa522e
-
-
----
-
-
-
+<https://github.com/user-attachments/assets/5a51393b-d0da-4dca-a1a3-2df4b3fa522e>
 
 ## **Toe Feature**
 

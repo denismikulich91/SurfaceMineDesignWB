@@ -53,7 +53,7 @@ class Bench:
     def execute(self, obj):
     # Add custom behavior or calculations if needed
             pass
-    # TODO: fix update errors from console
+
     def onChanged(self, obj, prop):
         # Check and handle property changes for `Elevation`
         if prop == "Elevation":

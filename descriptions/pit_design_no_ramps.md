@@ -44,7 +44,7 @@ https://github.com/user-attachments/assets/5a51393b-d0da-4dca-a1a3-2df4b3fa522e
 
 The **toe** is the most intricate feature in the workbench, forming the foundation for crest generation. Below is an overview of the **toe generation algorithm**:
 
-1. **Intersection with Optimization Result**: Calculate the intersection of the optimization shell with the design.
+1. **Intersection with Optimization Result**: Calculate the intersection of the optimization shell with the bench elevation.
 2. **Midpoint Creation**: For each edge in the intersection, create a midpoint.
 3. **Toe Vertex List (TVL)**:
    - Combine the midpoints into a closed polygon.
@@ -84,7 +84,7 @@ A **bench** acts as a container feature for a toe and crest, managing their para
 - **Crest**: References the crest of the previous bench (if applicable).
 - **Bench Toe and Bench Crest**: Links to the toe and crest features of the current bench.
 - **Bench Height**: Controls the height difference between the current bench's crest and toe.
-- **Berm Width**: Sets the horizontal offset of the crest from the toe.
+- **Berm Width**: Sets the horizontal offset between lower bench crest and current toe.
 - **Elevation**: Defines the elevation of the toe for the current bench.
 - **Expansion Option**: Controls how the optimization shell impacts toe generation:
   - **Full Expansion**: Default option. Expands the bench entirely where the optimization shell width exceeds the berm width. (Node appears green in the data tree.)

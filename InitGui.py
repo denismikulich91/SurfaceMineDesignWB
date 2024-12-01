@@ -5,24 +5,6 @@ from commands.create_crest import CreateCrest
 from commands.create_bench import CreateBench
 from commands.create_pit import CreatePit
 
-import sys
-import subprocess
-
-import sys
-import subprocess
-
-def ensure_dependency(module_name):
-    try:
-        __import__(module_name)
-    except ImportError:
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
-        except Exception as e:
-            raise ImportError(f"Could not install the required module: {module_name}. Error: {e}")
-
-# Ensure Shapely is available
-ensure_dependency("shapely")
-
 class SurfaceMineDesign (Workbench):
     def __init__(self):
         import resources.SurfaceMineDesignerWbIcon as SurfaceMineDesignerWbIcon

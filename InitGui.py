@@ -5,6 +5,18 @@ from commands.create_crest import CreateCrest
 from commands.create_bench import CreateBench
 from commands.create_pit import CreatePit
 
+import sys
+import subprocess
+
+# Function to install missing modules
+def install_missing_module(module_name):
+    try:
+        __import__(module_name)
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
+
+# Ensure Shapely is installed
+install_missing_module("shapely")
 
 class SurfaceMineDesign (Workbench):
     def __init__(self):

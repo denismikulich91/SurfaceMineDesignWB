@@ -7,11 +7,10 @@ from commands.create_pit import CreatePit
 
 
 class SurfaceMineDesign (Workbench):
-
-    MenuText = "Surface Mine Design"
-    ToolTip = "Parametric tool to design surface mines"
-    dir_path = os.getcwd()
-    Icon = os.path.join(dir_path, "resources", "workbench.svg")
+    def __init__(self):
+        import SurfaceMineDesignerWbIcon
+        self.__class__.Icon = SurfaceMineDesignerWbIcon.path() + "/resources/workbench.svg"
+        self.__class__.MenuText = "Surface Mine Designer"
 
     def Initialize(self):
         """This function is executed when the workbench is first activated.

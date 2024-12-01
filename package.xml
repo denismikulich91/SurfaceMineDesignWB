@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1">
+  <name>Surface Mine Design</name>
+  <description>Parameteric surface mine design tools and more</description>
+  <version>0.0.1</version>
+  <maintainer email="denismikulich91@gmail.com">Mikulich Denis</maintainer>
+  <license file="LICENSE">Free</license>
+  <url type="repository" branch="master">https://github.com/denismikulich91/SurfaceMineDesignWB</url>
+  <url type="documentation">https://github.com/denismikulich91/SurfaceMineDesignWB/blob/main/README.md/url>
+
+  <content>
+    <workbench>
+      <name>Surface Mine Design</name>
+      <classname>SurfaceMineDesign</classname>
+      <description>Parameteric surface mine design tools and more</description>
+      <version>0.0.1</version>
+      <subdirectory>./</subdirectory>
+      <icon>freecad/SurfaceMineDesignWB/resources/icons/workbench.svg</icon>
+      <freecadmin>1.0.0</freecadmin>
+      <depend>shapely</depend>
+      <tag>mining</tag>
+    </workbench>
+  </content>
+
+</package>

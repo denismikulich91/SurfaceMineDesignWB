@@ -8,8 +8,8 @@ from commands.create_pit import CreatePit
 
 class SurfaceMineDesign (Workbench):
     def __init__(self):
-        import SurfaceMineDesignerWbIcon
-        self.__class__.Icon = SurfaceMineDesignerWbIcon.path() + "/resources/workbench.svg"
+        import resources.SurfaceMineDesignerWbIcon as SurfaceMineDesignerWbIcon
+        self.__class__.Icon = SurfaceMineDesignerWbIcon.path() + "/workbench.svg"
         self.__class__.MenuText = "Surface Mine Designer"
 
     def Initialize(self):

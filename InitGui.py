@@ -4,6 +4,7 @@ from commands.create_toe import CreateToe
 from commands.create_crest import CreateCrest
 from commands.create_bench import CreateBench
 from commands.create_pit import CreatePit
+from commands.import_omf import ImportOmf
 
 class SurfaceMineDesign (Workbench):
     def __init__(self):
@@ -16,7 +17,7 @@ class SurfaceMineDesign (Workbench):
         It is executed once in a FreeCAD session followed by the Activated function.
         """
 
-        self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit"]  # a list of command names created in the line above
+        self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit", "ImportOmf"]  # a list of command names created in the line above
         self.appendToolbar("SurfaceMineDesignWorkbench", self.list)  # creates a new toolbar with your commands
 
 

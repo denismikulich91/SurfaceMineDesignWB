@@ -4,8 +4,9 @@
   <description>Parametric surface mine design tools and more</description>
   <version>0.0.1</version>
   <maintainer email="denismikulich91@gmail.com">Mikulich Denis</maintainer>
-  <license file="LICENSE">Free</license>
+  <license file="LICENSE">LGPL2+</license>
   <url type="repository" branch="main">https://github.com/denismikulich91/SurfaceMineDesignWB</url>
+  <url type="documentation">https://github.com/denismikulich91/SurfaceMineDesignWB/blob/main/README.md</url>
 
   <content>
     <workbench>

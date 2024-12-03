@@ -20,7 +20,7 @@ class ImportOmf:
     def Activated(self):
 
         doc = App.ActiveDocument
-        # available_schemes_list = ["org.omf.v2.element.surface", "org.omf.v2.element.lineset"]
+        # available_schemes_list = ["org.omf.v2.element.surface", "org.omf.v2.element.lineset", "org.omf.v2.element.pointset"]
 
         omf_file_path = select_omf_file()
         print("File selected: ", omf_file_path)
@@ -36,7 +36,6 @@ class ImportOmf:
                 for triangle in triangles:
                     current_triangle = [vert_coords[triangle[0]] * 1000, vert_coords[triangle[1]] * 1000, vert_coords[triangle[2]] * 1000]
                     surface_mesh.append(current_triangle)
-                print(element.name)
                 obj = doc.addObject("Mesh::Feature", element.name)
                 meshObject = Mesh.Mesh(surface_mesh)
                 obj.Mesh = meshObject
@@ -52,7 +51,6 @@ class ImportOmf:
                 for segment in segments:
                     current_segment = [point_coords[segment[0]]*1000, point_coords[segment[1]]*1000]
                     lines.append(current_segment)
-                print(element.name)
                 obj = doc.addObject("Part::Feature", element.name)
                 obj.Shape = self.create_lines_from_segments(lines)
                 default_color = (255, 255, 255)
@@ -64,17 +62,16 @@ class ImportOmf:
                 object_list_to_group.append(obj)
 
             elif element.schema == "org.omf.v2.element.pointset":
-                points = []
                 point_coords = element.vertices
                 converted_points = [point * 1000 for point in point_coords]
-                print(converted_points)
                 obj = doc.addObject("Part::Feature", element.name)
                 obj.Shape = self.create_points_feature(converted_points)
                 default_color = (255, 255, 255)
                 color = tuple(element.metadata.get('color', None)) or default_color
                 obj.ViewObject.PointColor = color
-                obj.ViewObject.PointSize = 3
+                obj.ViewObject.PointSize = 7
                 object_list_to_group.append(obj)
+
             else:
                 print(element.schema, " is not available type just yet :-(")
 

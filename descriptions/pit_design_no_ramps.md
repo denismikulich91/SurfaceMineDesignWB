@@ -19,6 +19,7 @@ The key graphical features are **toes** and **crests**, while the **pit** and **
 This structure offers two key advantages:
 
 - **Logical Organization**: Provides a clear hierarchy for design elements.
+-
 - **Parameter Propagation**: Parameters and visual settings can be propagated from parent features to child features. For example, setting a *minimum mining width* in the Pit feature will automatically propagate this value to all benches, while individual benches can override these settings as needed.
 
 <https://github.com/user-attachments/assets/5a51393b-d0da-4dca-a1a3-2df4b3fa522e>

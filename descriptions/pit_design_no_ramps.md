@@ -10,13 +10,12 @@ The structure of the module is outlined below:
 
 The key graphical features are **toes** and **crests**, while the **pit** and **bench** serve as container-like features. A **pit** consists of multiple **benches**, and each bench contains both a toe and a crest. To enhance usability, the parameters of toes and crests are aggregated at the bench level. For example, while the *minimum mining width* is a toe-specific parameter and the *face angle* applies to the crest, both are grouped together under the bench feature for easier parameter management.
 
+<https://github.com/user-attachments/assets/934d9737-a67a-41b9-a1d3-e47823e636f4>
+
 This structure offers two key advantages:
 
 - **Logical Organization**: Provides a clear hierarchy for design elements.
--
 - **Parameter Propagation**: Parameters and visual settings can be propagated from parent features to child features. For example, setting a *minimum mining width* in the Pit feature will automatically propagate this value to all benches, while individual benches can override these settings as needed.
-
-<https://github.com/user-attachments/assets/5a51393b-d0da-4dca-a1a3-2df4b3fa522e>
 
 ## **Toe Feature**
 

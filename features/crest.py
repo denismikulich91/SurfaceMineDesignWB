@@ -35,7 +35,8 @@ class Crest:
 
         end_time = time.time()
         print(f"Crest calculation took {(end_time - start_time) * 1000:.6f} milliseconds")
-
+        
+    # TODO: problem with automatic crest naming
     def onChanged(self, obj, prop):
         if prop == "Toe":
             if hasattr(obj, "Child"):

@@ -19,23 +19,22 @@ class ImportOmf:
 
     def Activated(self):
 
-        # Get the available objects in the document
         doc = App.ActiveDocument
+        available_schemes_list = ["org.omf.v2.element.surface"]
 
         omf_file_path = select_omf_file()
         print("File selected: ", omf_file_path)
         imported_project = omf.load(omf_file_path)
         elements = imported_project.elements
-        # TODO: filter tensor block model
 
         object_list_to_group = []
         for element in elements:
-            if element.metadata['subtype'] == "surface":
+            if element.schema in available_schemes_list:
                 surface_mesh = []
                 vert_coords = element.vertices
                 triangles = element.triangles
                 for triangle in triangles:
-                    current_triangle = [vert_coords[triangle[0]], vert_coords[triangle[1]], vert_coords[triangle[2]]]
+                    current_triangle = [vert_coords[triangle[0]] * 1000, vert_coords[triangle[1]] * 1000, vert_coords[triangle[2]] * 1000]
                     surface_mesh.append(current_triangle)
                 print(element.name)
                 obj = doc.addObject("Mesh::Feature", element.name)
@@ -46,7 +45,7 @@ class ImportOmf:
                 obj.ViewObject.ShapeColor = color
                 object_list_to_group.append(obj)
             else:
-                print(element.metadata['subtype'], " is not available type just yet :-(")
+                print(element.schema, " is not available type just yet :-(")
 
         group_name = os.path.splitext(os.path.basename(omf_file_path))[0]
         if len(object_list_to_group) > 1:

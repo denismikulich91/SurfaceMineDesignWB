@@ -37,9 +37,18 @@ def is_point_inside_polygon(point: Tuple[float, float], polygon_points: List[Tup
     return is_inside
 
 
-def _is_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[float, float]) -> bool:
+def _is_collinear(p1: Tuple[float, float], 
+                  p2: Tuple[float, float], 
+                  p3: Tuple[float, float], 
+                  tolerance: float = 200) -> bool:
     """
-    Checks if the three points (p1, p2, p3) are collinear.
+    Checks if the three points (p1, p2, p3) are collinear in 2D space within a given tolerance.
+
+    :param p1: First point (x, y).
+    :param p2: Second point (x, y).
+    :param p3: Third point (x, y).
+    :param tolerance: Tolerance value. Points are considered collinear if the deviation is within this value.
+    :return: True if points are collinear within the tolerance, False otherwise.
     """
     # Vector from p1 to p2
     v1 = (p2[0] - p1[0], p2[1] - p1[1])
@@ -47,11 +56,11 @@ def _is_collinear(p1: Tuple[float, float], p2: Tuple[float, float], p3: Tuple[fl
     # Vector from p2 to p3
     v2 = (p3[0] - p2[0], p3[1] - p2[1])
 
-    # Cross product in 2D is scalar (determinant of the 2x2 matrix formed by v1 and v2)
+    # Cross product in 2D
     cross_product = v1[0] * v2[1] - v1[1] * v2[0]
 
-    # If the cross product is 0, the points are collinear
-    return cross_product == 0
+    # Check if the cross product is close to zero within the tolerance
+    return abs(cross_product) <= tolerance
 
 
 def mark_internal_polygons(polygons: List[List[Tuple[float, float]]]) -> List[PolygonData]:
@@ -79,14 +88,15 @@ def remove_redundant_points(polygon: List[Tuple[float, float]]) -> List[Tuple[fl
     cleaned_polygon = []
 
     for i in range(len(polygon)):
-        if i == 0:
-            cleaned_polygon.append(polygon[i])
         p1 = polygon[i]
         p2 = polygon[(i + 1) % len(polygon)]
         p3 = polygon[(i + 2) % len(polygon)]
 
         if not _is_collinear(p1, p2, p3):
             cleaned_polygon.append(p2)
+
+    if len(cleaned_polygon) > 1 and _is_collinear(cleaned_polygon[-1], cleaned_polygon[0], cleaned_polygon[1]):
+        cleaned_polygon.pop(0)
 
     return cleaned_polygon
 

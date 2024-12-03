@@ -22,11 +22,13 @@ class ImportOmf:
         # Get the available objects in the document
         doc = App.ActiveDocument
 
-        dialog = select_omf_file()
-        print("File selected: ", dialog)
-        test = omf.load(dialog)
-        elements = test.elements
-        # TODO: filter tesor block model
+        omf_file_path = select_omf_file()
+        print("File selected: ", omf_file_path)
+        imported_project = omf.load(omf_file_path)
+        elements = imported_project.elements
+        # TODO: filter tensor block model
+
+        object_list_to_group = []
         for element in elements:
             if element.metadata['subtype'] == "surface":
                 surface_mesh = []
@@ -36,21 +38,31 @@ class ImportOmf:
                     current_triangle = [vert_coords[triangle[0]], vert_coords[triangle[1]], vert_coords[triangle[2]]]
                     surface_mesh.append(current_triangle)
                 print(element.name)
-                # element.name = "test"
                 obj = doc.addObject("Mesh::Feature", element.name)
-                # if type==surface
                 meshObject = Mesh.Mesh(surface_mesh)
                 obj.Mesh = meshObject
                 default_color = (120, 120, 120)
                 color = tuple(element.metadata.get('color', None)) or default_color
-                print(color)
                 obj.ViewObject.ShapeColor = color
+                object_list_to_group.append(obj)
             else:
                 print(element.metadata['subtype'], " is not available type just yet :-(")
 
+        group_name = os.path.splitext(os.path.basename(omf_file_path))[0]
+        if len(object_list_to_group) > 1:
+            
+            data_group = doc.addObject("App::DocumentObjectGroup", group_name)
+            for object in object_list_to_group:
+                data_group.addObject(object)
+            data_group.recompute()
         
+        elif len(object_list_to_group) == 1:
+            object_list_to_group[0].Label = group_name
 
+        else:
+            print(f"There is no suitable data to import inside {group_name}... yet")
 
+        
     def IsActive(self):
         """Optional: This command is always active."""
         return True

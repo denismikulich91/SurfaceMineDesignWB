@@ -3,7 +3,7 @@ from typing import List, Tuple, Optional
 
 
 class CreateBenchDialog(QtWidgets.QDialog):
-    def __init__(self, object_list: List[QtCore.QObject], parent: QtWidgets.QWidget = None) -> None:
+    def __init__(self, mesh_list: List[QtCore.QObject], object_list: List[QtCore.QObject], parent: QtWidgets.QWidget = None) -> None:
         super(CreateBenchDialog, self).__init__(parent)
 
         # Set dialog title
@@ -15,7 +15,7 @@ class CreateBenchDialog(QtWidgets.QDialog):
         # Object selection (dropdown)
         self.object_label = QtWidgets.QLabel("Select Shell", self)
         self.object_dropdown = QtWidgets.QComboBox(self)
-        for obj in object_list:
+        for obj in mesh_list:
             self.object_dropdown.addItem(obj.Label)
 
         layout.addWidget(self.object_label)

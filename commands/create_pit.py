@@ -21,19 +21,20 @@ class CreatePit:
         # Get the available objects in the document
         doc = App.ActiveDocument
         object_list = doc.Objects
+        mesh_objects = [obj for obj in object_list if obj.TypeId == "Mesh::Feature"]
         pit_benches = []
-        if not object_list:
-            QtWidgets.QMessageBox.warning(None, "No Objects", "There are no objects in the document to select.")
+        if not mesh_objects:
+            QtWidgets.QMessageBox.warning(None, "No Optimization shells", "There are no shells in the document to select.")
             return
 
-        dialog = CreatePitDialog(object_list)
+        dialog = CreatePitDialog(mesh_objects, object_list)
 
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             (selected_skin_name, raw_benches, expansion_option, raw_berm_width, raw_face_angle, raw_min_area,
                 raw_min_mining_width, raw_significant_length, raw_sign_corner_length,
                 selected_ignore_expan_poly_name) = dialog.get_inputs()
             
-            selected_skin = next((obj for obj in object_list if obj.Label == selected_skin_name), None)
+            selected_skin = next((obj for obj in mesh_objects if obj.Label == selected_skin_name), None)
 
             if not selected_skin:
                 QtWidgets.QMessageBox.warning(None, "Invalid Object", "The selected object could not be found.")

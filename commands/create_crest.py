@@ -23,7 +23,7 @@ class CreateCrest:
         object_list = doc.Objects
 
         if not object_list:
-            QtWidgets.QMessageBox.warning(None, "No Objects", "There are no objects in the document to select.")
+            QtWidgets.QMessageBox.warning(None, "No Toes", "There are no toes in the document to select.")
             return
 
         dialog = CreateCrestDialog(object_list)

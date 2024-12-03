@@ -4,13 +4,13 @@
 
 The Surface Mine Design Workbench is a powerful tool for designing open-pit mines using parametric principles. This module focuses on generating an open-pit design based on specified parameters and input optimization results (e.g., ultimate pit shells). The design is **fully parametric**, meaning any updates to parameters or input shells are instantly reflected in the model. The algorithm efficiently handles large and complex shells, recalculating in under a second.
 
+![Multiply pushbacks design](pics/overview.png){width="800px"}
+
 The structure of the module is outlined below:
 
 ![Structure Overview](pics/structure.png)
 
 The key graphical features are **toes** and **crests**, while the **pit** and **bench** serve as container-like features. A **pit** consists of multiple **benches**, and each bench contains both a toe and a crest. To enhance usability, the parameters of toes and crests are aggregated at the bench level. For example, while the *minimum mining width* is a toe-specific parameter and the *face angle* applies to the crest, both are grouped together under the bench feature for easier parameter management.
-
-<https://github.com/user-attachments/assets/934d9737-a67a-41b9-a1d3-e47823e636f4>
 
 This structure offers two key advantages:
 

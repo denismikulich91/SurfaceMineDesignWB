@@ -232,7 +232,7 @@ class ViewProviderPit:
             /* XPM */
             static char * pit_xpm[] = {
             "25 25 54 1",
-            " 	c #FFFFFF",
+            " 	c None",
             ".	c #FEFEFE",
             "+	c #C2C2C2",
             "@	c #777777",

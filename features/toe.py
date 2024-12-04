@@ -149,7 +149,7 @@ class ViewProviderToe:
             /* XPM */
             static char * toe_xpm[] = {
             "25 25 5 1",
-            " 	c #FFFFFF",
+            " 	c None",
             ".	c #183A17",
             "+	c #FBFBFB",
             "@	c #F6F6F6",

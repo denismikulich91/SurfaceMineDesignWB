@@ -106,7 +106,7 @@ class ViewProviderCrest:
         /* XPM */
         static char * crest_xpm[] = {
         "25 25 37 1",
-        " 	c #FFFFFF",
+        " 	c None",
         ".	c #FEFEFE",
         "+	c #BEB8C4",
         "@	c #745E84",
@@ -162,7 +162,7 @@ class ViewProviderCrest:
         "         {|||||{         ",
         "       12#######23       ",
         "       4#5666667#8       ",
-        "                         ",
+        "         6666666         ",
         "                         ",
         "                         ",
         "                         ",

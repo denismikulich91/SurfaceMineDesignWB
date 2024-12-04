@@ -196,7 +196,7 @@ class ViewProviderBench:
                     /* XPM */
                     static char * bench_xpm[] = {
                     "25 25 61 1",
-                    " 	c #FFFFFF",
+                    " 	c None",
                     ".	c #BBBBBB",
                     "+	c #6C6C6C",
                     "@	c #424242",
@@ -288,7 +288,7 @@ class ViewProviderBench:
                     /* XPM */
                     static char * bench2_xpm[] = {
                     "25 25 54 1",
-                    " 	c #FFFFFF",
+                    " 	c None",
                     ".	c #BBBBBB",
                     "+	c #6C6C6C",
                     "@	c #424242",
@@ -373,7 +373,7 @@ class ViewProviderBench:
 /* XPM */
 static char * bench3_xpm[] = {
 "25 25 82 1",
-" 	c #FFFFFF",
+" 	c None",
 ".	c #BEBEBE",
 "+	c #6D6D6D",
 "@	c #505050",

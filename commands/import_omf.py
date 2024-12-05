@@ -5,6 +5,9 @@ from ui.omf_dialogs import select_omf_file
 import utils.omf as omf
 import Mesh, Part
 import numpy as np
+from utils.blockmodel import BlockModelHandler
+import time
+
 
 
 class ImportOmf:
@@ -73,6 +76,77 @@ class ImportOmf:
                 color = tuple(element.metadata.get('color', None)) or default_color
                 obj.ViewObject.PointColor = color
                 obj.ViewObject.PointSize = 7
+                object_list_to_group.append(obj)
+            # TODO: Make BM a custom feature
+            # TODO: give user an option to select datasets to
+            elif element.schema == "org.omf.v2.element.blockmodel.tensorgrid":
+                bm_geom_type = "point"
+                start_time = time.time()
+
+                if bm_geom_type == "points":
+                    bm_filter = {'CU_pct': ['>', 3.4]}
+                    handled_bm = BlockModelHandler(element, bm_filter, compact=False)
+                    bm_df = handled_bm.get_bm_dataframe
+                    bm_df['color'] = bm_df['CU_pct'].apply(handled_bm.set_color)
+                    color_array = bm_df['color'].tolist()
+                    xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
+                    array_of_arrays = xyz_df.to_numpy().tolist()
+                    obj = doc.addObject("Part::Feature", element.name)
+                    obj.Shape = self.create_points_feature(array_of_arrays)
+                    default_color = (255, 255, 255)
+                    color = tuple(element.metadata.get('color', None)) or default_color
+                    obj.ViewObject.PointColor = color
+                    obj.ViewObject.PointColorArray = color_array
+                    obj.ViewObject.PointSize = 10
+
+                else:
+                    bm_filter = {'CU_pct': ['>', 0.5]}  # Define your filtering condition
+                    handled_bm = BlockModelHandler(element, bm_filter, compact=False)
+                    bm_df = handled_bm.get_bm_dataframe
+
+                    # Apply the color logic based on 'CU_pct'
+                    bm_df['color'] = bm_df['CU_pct'].apply(handled_bm.set_color)
+
+                    # Multiply coordinates by 1000 to convert to millimeters
+                    xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
+                    array_of_arrays = xyz_df.to_numpy().tolist()
+
+                    # Create cubes instead of points
+                    cubes = []
+                    colors = []
+                    cube_size = 10000  # Size of each cube in millimeters
+
+                    # Generate cubes and assign colors
+                    for _, row in bm_df.iterrows():
+                        # Create a cube at the position (x, y, z)
+                        cube = Part.makeBox(cube_size, cube_size, cube_size, 
+                                            App.Vector(row['x_coord']*1000, row['y_coord']*1000, row['z_coord']*1000))
+                        cubes.append(cube)
+                        
+                        # Assign color for each cube (6 faces per cube)
+                        cube_color = tuple(row['color']) + (1,)  # Add alpha = 1 for opacity
+                        colors.extend([cube_color] * 6)  # Repeat color for all 6 faces of the cube
+
+                    # Combine all cubes into a Part::Compound
+                    doc = App.ActiveDocument
+                    if not doc:
+                        doc = App.newDocument("BlockModelDoc")
+
+                    compound = Part.makeCompound(cubes)
+
+                    # Create a new Part::Feature for the block model
+                    obj = doc.addObject("Part::Feature", element.name)
+                    obj.Shape = compound
+
+                    # Assign color array to the object
+                    obj.ViewObject.DiffuseColor = colors
+
+                    # Set the visibility and update the view
+                    FreeCADGui.ActiveDocument.getObject(obj.Name).Visibility = True
+                    FreeCADGui.updateGui()
+
+                end_time = time.time()
+                print(f"Block Model import with type {bm_geom_type} took {(end_time - start_time) * 1000:.6f} milliseconds")
                 object_list_to_group.append(obj)
 
             else:

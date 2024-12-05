@@ -17,8 +17,8 @@ class SurfaceMineDesign (Workbench):
         It is executed once in a FreeCAD session followed by the Activated function.
         """
 
-        self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit", "ImportOmf"]  # a list of command names created in the line above
-        self.appendToolbar("SurfaceMineDesignWorkbench", self.list)  # creates a new toolbar with your commands
+        self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit", "ImportOmf"]
+        self.appendToolbar("SurfaceMineDesignWorkbench", self.list)
 
 
     def Activated(self):

@@ -16,7 +16,8 @@ class Bench:
         obj.addProperty('App::PropertyLink', 'Skin', 'Base', 'Linked Mesh').Skin = toe_params["skin"]
         obj.addProperty('App::PropertyLink', 'Crest', 'Base', 'Linked Crest').Crest = toe_params["crest"]
         obj.addProperty('App::PropertyLink', 'ExpansionIgnorePolygon', 'Base', 'Linked Expansion ignore polygon').ExpansionIgnorePolygon = toe_params["ignore_expan_poly"]
-        obj.addProperty('App::PropertyInteger', 'ExpansionOption', 'Parameters', '').ExpansionOption = 1
+        obj.addProperty('App::PropertyEnumeration', 'ExpansionOption', 'Parameters', 
+                    'Select the expansion option').ExpansionOption = ['Shell expansion', 'Partial expansion', 'No expansion']
         obj.addProperty('App::PropertyLength', 'Elevation', 'Parameters', '').Elevation = '0m'
         obj.addProperty('App::PropertyLength', 'BermWidth', 'Parameters', '').BermWidth = '0m'
         obj.addProperty('App::PropertyArea', 'MinimumArea', 'Parameters', '').MinimumArea = '0m^2'
@@ -190,7 +191,7 @@ class ViewProviderBench:
     def getIcon(self):
         if hasattr(self, "Object") and hasattr(self.Object, "ExpansionOption"):
             exp_option = self.Object.ExpansionOption 
-            if exp_option == 1:
+            if exp_option == 'Shell expansion':
 
                 return """
                     /* XPM */
@@ -283,7 +284,7 @@ class ViewProviderBench:
                     "                         ",
                     "                         "};
                     """
-            elif exp_option == 3:
+            elif exp_option == 'No expansion':
                 return """
                     /* XPM */
                     static char * bench2_xpm[] = {

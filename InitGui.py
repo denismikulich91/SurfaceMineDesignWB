@@ -6,6 +6,9 @@ from commands.create_bench import CreateBench
 from commands.create_pit import CreatePit
 from commands.import_omf import ImportOmf
 
+# TODO: Make BM a custom feature
+# TODO: give user an option to select datasets to import
+# TODO: Test moving UI Dialogs into Tasks ab
 class SurfaceMineDesign (Workbench):
     def __init__(self):
         import resources.SurfaceMineDesignerWbIcon as SurfaceMineDesignerWbIcon

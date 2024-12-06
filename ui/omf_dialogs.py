@@ -6,3 +6,6 @@ def select_omf_file():
     main_window = FreeCADGui.getMainWindow()
     filename, _ = QFileDialog.getOpenFileName(main_window, "Select a File", FreeCAD.getHomePath(), "OMF Files (*.omf)")
     return filename
+
+
+

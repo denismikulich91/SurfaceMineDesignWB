@@ -12,7 +12,9 @@ class Pit:
 
         obj.addProperty('App::PropertyLink', 'Skin', 'Base', 'Linked Mesh').Skin = params["skin"]
         obj.addProperty('App::PropertyLink', 'ExpansionIgnorePolygon', 'Base', 'Linked Expansion ignore polygon').ExpansionIgnorePolygon = params["ignore_expan_poly"]
-        obj.addProperty('App::PropertyInteger', 'ExpansionOption', 'Parameters', '').ExpansionOption = 1
+        obj.addProperty('App::PropertyEnumeration', 'ExpansionOption', 'Parameters', 
+                    'Select the expansion option').ExpansionOption = ['Shell expansion', 'Partial expansion', 'No expansion']
+    
         obj.addProperty('App::PropertyLength', 'BermWidth', 'Parameters', '').BermWidth = '0m'
         obj.addProperty('App::PropertyArea', 'MinimumArea', 'Parameters', '').MinimumArea = '0m^2'
         obj.addProperty('App::PropertyLength', 'SignificantLength', 'Shape', '').SignificantLength = '0m'

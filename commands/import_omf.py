@@ -8,8 +8,6 @@ import numpy as np
 from utils.blockmodel import BlockModelHandler
 import time
 
-
-
 class ImportOmf:
 
     def GetResources(self):
@@ -24,7 +22,6 @@ class ImportOmf:
 
         doc = App.ActiveDocument
         # available_schemes_list = ["org.omf.v2.element.surface", "org.omf.v2.element.lineset", "org.omf.v2.element.pointset"]
-
         omf_file_path = select_omf_file()
         print("File selected: ", omf_file_path)
         if not omf_file_path:
@@ -77,16 +74,18 @@ class ImportOmf:
                 obj.ViewObject.PointColor = color
                 obj.ViewObject.PointSize = 7
                 object_list_to_group.append(obj)
-            # TODO: Make BM a custom feature
-            # TODO: give user an option to select datasets to
+
             elif element.schema == "org.omf.v2.element.blockmodel.tensorgrid":
-                bm_geom_type = "point"
+                bm_geom_type = "pointss"
                 start_time = time.time()
 
-                if bm_geom_type == "points":
-                    bm_filter = {'CU_pct': ['>', 3.4]}
+                if bm_geom_type == "point":
+                    bm_filter = {'CU_pct': ['>', 2.5]}
                     handled_bm = BlockModelHandler(element, bm_filter, compact=False)
                     bm_df = handled_bm.get_bm_dataframe
+                    if len(bm_df) < 1:
+                        print(f"{element.name} block model has no blocks")
+                        continue
                     bm_df['color'] = bm_df['CU_pct'].apply(handled_bm.set_color)
                     color_array = bm_df['color'].tolist()
                     xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
@@ -100,48 +99,41 @@ class ImportOmf:
                     obj.ViewObject.PointSize = 10
 
                 else:
-                    bm_filter = {'CU_pct': ['>', 0.5]}  # Define your filtering condition
-                    handled_bm = BlockModelHandler(element, bm_filter, compact=False)
+                    bm_filter = {'CU_pct': ['>', 2.5]}  # Define your filtering condition
+                    is_compact = True
+                    handled_bm = BlockModelHandler(element, None, compact=is_compact)
                     bm_df = handled_bm.get_bm_dataframe
+                    if len(bm_df) < 1:
+                        print(f"{element.name} block model has no blocks")
+                        continue
 
-                    # Apply the color logic based on 'CU_pct'
                     bm_df['color'] = bm_df['CU_pct'].apply(handled_bm.set_color)
 
-                    # Multiply coordinates by 1000 to convert to millimeters
                     xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
                     array_of_arrays = xyz_df.to_numpy().tolist()
-
-                    # Create cubes instead of points
                     cubes = []
                     colors = []
-                    cube_size = 10000  # Size of each cube in millimeters
-
-                    # Generate cubes and assign colors
+                    if is_compact:
+                        handled_bm.make_compact()
+                        bm_df = bm_df[bm_df['is_outer']]
+                        print("Run filter, num of blocks: ", len(bm_df))
                     for _, row in bm_df.iterrows():
-                        # Create a cube at the position (x, y, z)
-                        cube = Part.makeBox(cube_size, cube_size, cube_size, 
+                        cube = Part.makeBox(row['x_size'] * 1000, row['y_size'] * 1000, row['z_size'] * 1000, 
                                             App.Vector(row['x_coord']*1000, row['y_coord']*1000, row['z_coord']*1000))
                         cubes.append(cube)
                         
                         # Assign color for each cube (6 faces per cube)
-                        cube_color = tuple(row['color']) + (1,)  # Add alpha = 1 for opacity
-                        colors.extend([cube_color] * 6)  # Repeat color for all 6 faces of the cube
-
-                    # Combine all cubes into a Part::Compound
-                    doc = App.ActiveDocument
-                    if not doc:
-                        doc = App.newDocument("BlockModelDoc")
+                        cube_color = tuple(row['color']) + (1,)
+                        colors.extend([cube_color] * 6)
 
                     compound = Part.makeCompound(cubes)
-
-                    # Create a new Part::Feature for the block model
                     obj = doc.addObject("Part::Feature", element.name)
                     obj.Shape = compound
 
-                    # Assign color array to the object
                     obj.ViewObject.DiffuseColor = colors
+                    obj.ViewObject.LineWidth = 1
+                    obj.ViewObject.PointSize = 1
 
-                    # Set the visibility and update the view
                     FreeCADGui.ActiveDocument.getObject(obj.Name).Visibility = True
                     FreeCADGui.updateGui()
 

@@ -43,6 +43,45 @@ class BlockModelHandler:
         else:
             color = (255, 0, 0)
         return color
+    
+    def make_compact(self):
+        self._bm_dataframe['i_index'] = self._bm_dataframe['i_index'].astype(int)
+        self._bm_dataframe['j_index'] = self._bm_dataframe['j_index'].astype(int)
+        self._bm_dataframe['k_index'] = self._bm_dataframe['k_index'].astype(int)
+
+        if self.filter:
+            self._bm_dataframe['is_outer'] = False
+            grouped = self._bm_dataframe.groupby(['j_index', 'k_index'])
+            
+            # Iterate through groups
+            for (j, k), group in grouped:
+                min_i, max_i = group['i_index'].min(), group['i_index'].max()
+                self._bm_dataframe.loc[group.index, 'is_outer'] |= (group['i_index'] == min_i) | (group['i_index'] == max_i)
+
+            # Repeat the process for j_index grouped by i_index and k_index
+            grouped = self._bm_dataframe.groupby(['i_index', 'k_index'])
+            for (i, k), group in grouped:
+                min_j, max_j = group['j_index'].min(), group['j_index'].max()
+                self._bm_dataframe.loc[group.index, 'is_outer'] |= (group['j_index'] == min_j) | (group['j_index'] == max_j)
+
+            # Repeat the process for k_index grouped by i_index and j_index
+            grouped = self._bm_dataframe.groupby(['i_index', 'j_index'])
+            for (i, j), group in grouped:
+                min_k, max_k = group['k_index'].min(), group['k_index'].max()
+                self._bm_dataframe.loc[group.index, 'is_outer'] |= (group['k_index'] == min_k) | (group['k_index'] == max_k)
+        else:
+            min_i, max_i = 0, len(self.bm.tensor_u)
+            min_j, max_j = 0, len(self.bm.tensor_v)
+            min_k, max_k = 0, len(self.bm.tensor_w)
+
+            # Check if each block is on the boundary along any axis
+            is_outer_i = (self._bm_dataframe['i_index'] == min_i) | (self._bm_dataframe['i_index'] == max_i)
+            is_outer_j = (self._bm_dataframe['j_index'] == min_j) | (self._bm_dataframe['j_index'] == max_j)
+            is_outer_k = (self._bm_dataframe['k_index'] == min_k) | (self._bm_dataframe['k_index'] == max_k)
+
+            # Combine conditions
+            self._bm_dataframe['is_outer'] = is_outer_i | is_outer_j | is_outer_k
+
 
     def _bm_to_pandas_dataframe(self):
         origin = np.array(self.get_bm_origin)
@@ -56,7 +95,9 @@ class BlockModelHandler:
                     rows.append({
                         'x_size': x, 'y_size': y, 'z_size': z,
                         'x_coord': x_cumsum[i], 'y_coord': y_cumsum[j], 'z_coord': z_cumsum[k],
-                        'ijk_index': f'{i}-{j}-{k}',
+                        'i_index': i,
+                        'j_index': j,
+                        'k_index': k,
                         'bench': str(int(z_cumsum[k]))
                     })
 

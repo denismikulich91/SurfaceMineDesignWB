@@ -11,7 +11,8 @@ class Toe:
         obj.addProperty('App::PropertyLink', 'Skin', 'Base', 'Linked Mesh').Skin = skin
         obj.addProperty('App::PropertyLink', 'Crest', 'Base', 'Linked Crest').Crest = crest
         obj.addProperty('App::PropertyLink', 'ExpansionIgnorePolygon', 'Base', 'Linked Expansion ignore polygon').ExpansionIgnorePolygon = ignore_expan_poly
-        obj.addProperty('App::PropertyInteger', 'ExpansionOption', 'Parameters', '').ExpansionOption = 1
+        obj.addProperty('App::PropertyEnumeration', 'ExpansionOption', 'Parameters', 
+                    'Select the expansion option').ExpansionOption = ['Shell expansion', 'Partial expansion', 'No expansion']
         obj.addProperty('App::PropertyLength', 'Elevation', 'Parameters', '').Elevation = '0m'
         obj.addProperty('App::PropertyLength', 'BermWidth', 'Parameters', '').BermWidth = '0m'
         obj.addProperty('App::PropertyArea', 'MinimumArea', 'Parameters', '').MinimumArea = '0m^2'
@@ -53,7 +54,7 @@ class Toe:
 
         start_time = time.time()
 
-        if obj.ExpansionOption != 3:
+        if obj.ExpansionOption != 'No expansion':
             result = obj.Skin.Mesh.crossSections([((0, 0, obj.Elevation), (0, 0, 1))], 10)
 
         if obj.FirstBench:
@@ -62,9 +63,9 @@ class Toe:
                                                            obj.MinimumMiningWidth.Value, obj.SmoothingRatio,
                                                            obj.Elevation.Value)
         else:
-            if obj.ExpansionOption == 3:
+            if obj.ExpansionOption == 'No expansion':
                 resulted_wires = design.create_toe_no_expansion(obj.Crest.Shape.Wires, obj.Elevation.Value, obj.BermWidth.Value, obj.MinimumArea.Value)
-            elif obj.ExpansionOption == 2:
+            elif obj.ExpansionOption == 'Partial expansion':
                 # print("Here will be a partial expansion option developed")
                 resulted_wires = design.create_toe_with_expansion(result[0], obj.Crest.Shape.Wires, obj.BermWidth.Value, obj.MinimumArea.Value, 
                                                     obj.SignificantLength.Value, obj.SignificantCornerLength.Value, obj.MinimumMiningWidth.Value, 

@@ -24,5 +24,5 @@ import FreeCAD
 # TODO: Investigate
 FreeCAD.addImportType("Import format (*.omf)", "Open Mining Format")
 FreeCAD.addExportType("Export format (*.omf)", "Open Mining Format")
-print("Surface Mine Design starts here!")
+print("Surface Mine Design starts here!!")
 

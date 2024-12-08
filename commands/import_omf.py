@@ -5,8 +5,9 @@ from ui.omf_dialogs import select_omf_file
 import utils.omf as omf
 import Mesh, Part
 import numpy as np
-from utils.blockmodel import BlockModelHandler
+from utils.bm_handler import BlockModelHandler
 import time
+from features.block_model import BlockModel
 
 class ImportOmf:
 
@@ -76,71 +77,11 @@ class ImportOmf:
                 object_list_to_group.append(obj)
 
             elif element.schema == "org.omf.v2.element.blockmodel.tensorgrid":
-                bm_geom_type = "pointss"
-                start_time = time.time()
-
-                if bm_geom_type == "point":
-                    bm_filter = {'CU_pct': ['>', 2.5]}
-                    handled_bm = BlockModelHandler(element, bm_filter, compact=False)
-                    bm_df = handled_bm.get_bm_dataframe
-                    if len(bm_df) < 1:
-                        print(f"{element.name} block model has no blocks")
-                        continue
-                    bm_df['color'] = bm_df['CU_pct'].apply(handled_bm.set_color)
-                    color_array = bm_df['color'].tolist()
-                    xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
-                    array_of_arrays = xyz_df.to_numpy().tolist()
-                    obj = doc.addObject("Part::Feature", element.name)
-                    obj.Shape = self.create_points_feature(array_of_arrays)
-                    default_color = (255, 255, 255)
-                    color = tuple(element.metadata.get('color', None)) or default_color
-                    obj.ViewObject.PointColor = color
-                    obj.ViewObject.PointColorArray = color_array
-                    obj.ViewObject.PointSize = 10
-
-                else:
-                    bm_filter = {'CU_pct': ['>', 2.5]}  # Define your filtering condition
-                    is_compact = True
-                    handled_bm = BlockModelHandler(element, None, compact=is_compact)
-                    bm_df = handled_bm.get_bm_dataframe
-                    if len(bm_df) < 1:
-                        print(f"{element.name} block model has no blocks")
-                        continue
-
-                    bm_df['color'] = bm_df['CU_pct'].apply(handled_bm.set_color)
-
-                    xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
-                    array_of_arrays = xyz_df.to_numpy().tolist()
-                    cubes = []
-                    colors = []
-                    if is_compact:
-                        handled_bm.make_compact()
-                        bm_df = bm_df[bm_df['is_outer']]
-                        print("Run filter, num of blocks: ", len(bm_df))
-                    for _, row in bm_df.iterrows():
-                        cube = Part.makeBox(row['x_size'] * 1000, row['y_size'] * 1000, row['z_size'] * 1000, 
-                                            App.Vector(row['x_coord']*1000, row['y_coord']*1000, row['z_coord']*1000))
-                        cubes.append(cube)
-                        
-                        # Assign color for each cube (6 faces per cube)
-                        cube_color = tuple(row['color']) + (1,)
-                        colors.extend([cube_color] * 6)
-
-                    compound = Part.makeCompound(cubes)
-                    obj = doc.addObject("Part::Feature", element.name)
-                    obj.Shape = compound
-
-                    obj.ViewObject.DiffuseColor = colors
-                    obj.ViewObject.LineWidth = 1
-                    obj.ViewObject.PointSize = 1
-
-                    FreeCADGui.ActiveDocument.getObject(obj.Name).Visibility = True
-                    FreeCADGui.updateGui()
-
-                end_time = time.time()
-                print(f"Block Model import with type {bm_geom_type} took {(end_time - start_time) * 1000:.6f} milliseconds")
+                obj = doc.addObject("Part::FeaturePython", element.name)
+                handled_bm = BlockModelHandler(element)
+                BlockModel(obj, handled_bm.get_bm_dataframe, "None", None, "CU_pct > 3.4", "Cube", is_compact=True)
+                obj.recompute()
                 object_list_to_group.append(obj)
-
             else:
                 print(element.schema, " is not available type just yet :-(")
 

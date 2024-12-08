@@ -184,7 +184,7 @@ class CreateToeDialog:
         self.document.recompute()
 
     def reject(self):
-        print("Crest creation Cancelled")
+        print("Toe creation Cancelled")
         FreeCADGui.Control.closeDialog()
 
     def getStandardButtons(self):

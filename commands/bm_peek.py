@@ -22,7 +22,7 @@ class PeekOnBlockModel:
     def Activated(self):
         """Activate the command when BlockModel is selected"""
         selection = FreeCADGui.Selection.getSelection()
-        if selection and selection[0].TypeId == 'Spreadsheet::Sheet':
+        if selection and selection[0].Proxy.__module__ == 'features.block_model':
             self.active_object = selection[0]
             panel = PeakOnBmDialog(self.active_object)
             FreeCADGui.Control.showDialog(panel)
@@ -31,7 +31,7 @@ class PeekOnBlockModel:
     def IsActive(self):
         """This command is active only when a BlockModel is selected."""
         selection = FreeCADGui.Selection.getSelection()
-        if selection and selection[0].TypeId == 'Spreadsheet::Sheet':
+        if selection and selection[0].Proxy.__module__ == 'features.block_model':
             return True
         return False
 

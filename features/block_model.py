@@ -12,7 +12,7 @@ class BlockModel:
         self.bm_dataframe = bm_dataframe
         obj.Proxy = self
         obj.addProperty('App::PropertyLink', 'LegendTable', 'Base', 'Linked legend table').LegendTable = legend_table
-        obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Base', 'Block style').BlockStyle = ['Point', 'Cube']
+        obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Base', 'Block style').BlockStyle = ['Point', 'Block']
         obj.addProperty('App::PropertyBool', 'IsCompact', 'Base', 'Is compact').IsCompact = is_compact
         obj.addProperty('App::PropertyString', 'PandasQuery', 'Base', 'Pandas query').PandasQuery = pandas_query
         obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *self.bm_dataframe.columns.tolist()]
@@ -26,6 +26,9 @@ class BlockModel:
 
     def __setstate__(self, state):
         self.bm_dataframe = pd.DataFrame(json.loads(state))
+
+    def get_type(self):
+        return self.Type
 
     def execute(self, obj):
         start_time = time.time()
@@ -46,7 +49,7 @@ class BlockModel:
             return
         
         if obj.BlockStyle == "Point":
-            print("Run filter, num of blocks: ", len(bm_df))
+            print("Number of visualized blocks: ", len(bm_df))
 
             xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
             array_of_arrays = xyz_df.to_numpy().tolist()
@@ -57,12 +60,12 @@ class BlockModel:
                 )
                 color_array = bm_df['color'].tolist()
                 obj.ViewObject.PointColorArray = color_array
-                print("Color array applied")
             else:
-                default_color = (255, 255, 255)
+                default_color = (120, 120, 120)
                 obj.ViewObject.PointColor = default_color
             
         else:
+            print("Number of visualized blocks: ", len(bm_df))
             xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
             array_of_arrays = xyz_df.to_numpy().tolist()
             cubes = []
@@ -112,7 +115,13 @@ class BlockModel:
   
 
     def onChanged(self, obj, prop):
-        pass
+        if prop == "BlockStyle" and hasattr(obj, "IsCompact"):
+            if obj.BlockStyle == "Block":
+                obj.IsCompact = True
+                print("Auto switch")
+            if obj.BlockStyle == "Point":
+                obj.IsCompact = False
+                print("Auto switch")
 
 
     def onDelete(self, obj, subelements):
@@ -131,7 +140,7 @@ class ViewProviderBlockModel:
         """
         obj.Proxy = self
         obj.Visibility = True
-        if self.Object.BlockStyle == "Cube":
+        if self.Object.BlockStyle == "Block":
           obj.LineWidth = 1
           obj.PointSize = 1
         else:
@@ -143,7 +152,7 @@ class ViewProviderBlockModel:
 
     def updateData(self, obj, prop):
         if prop == "BlockStyle":
-            if obj.BlockStyle == "Cube":
+            if obj.BlockStyle == "Block":
                 obj.ViewObject.LineWidth = 1
                 obj.ViewObject.PointSize = 1
                 obj.ViewObject.PointSize = 1
@@ -174,14 +183,7 @@ class ViewProviderBlockModel:
 
     def onChanged(self, obj, prop):
         return
-        # if prop == "BlockStyle":
-        #     if obj.BlockStyle == "Cube":
-        #         print("Changed to cube style onChanged")
-        #         obj.ViewObject.LineWidth = 1
-        #         obj.ViewObject.PointSize = 1
-        #     else:
-        #         print("Changed to point style onChanged")
-        #         obj.ViewObject.PointSize = 10
+
 
     def getIcon(self):
         """

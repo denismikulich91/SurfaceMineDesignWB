@@ -18,7 +18,7 @@ class ImportOmfDialog:
         layout = QtWidgets.QVBoxLayout(self.form)
         self.checkboxes = []
         self.additional_fields = {}
-        self.document = doc
+        self.document = doc if doc else FreeCAD.newDocument()
         self.object_list = []
         self.group_name = group_name
 

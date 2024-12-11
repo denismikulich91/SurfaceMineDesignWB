@@ -78,6 +78,7 @@ class BlockModelHandler:
         x_cumsum = np.cumsum(np.insert(self.bm.tensor_u, 0, 0))[:-1] + origin[0]
         y_cumsum = np.cumsum(np.insert(self.bm.tensor_v, 0, 0))[:-1] + origin[1]
         z_cumsum = np.cumsum(np.insert(self.bm.tensor_w, 0, 0))[:-1] + origin[2]
+        
         for i, x in enumerate(self.bm.tensor_u):
             for j, y in enumerate(self.bm.tensor_v):
                 for k, z in enumerate(self.bm.tensor_w):

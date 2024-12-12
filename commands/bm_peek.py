@@ -28,11 +28,4 @@ class PeekOnBlockModel:
             FreeCADGui.Control.showDialog(panel)
 
 
-    def IsActive(self):
-        """This command is active only when a BlockModel is selected."""
-        selection = FreeCADGui.Selection.getSelection()
-        if selection and selection[0].Proxy.__module__ == 'features.block_model':
-            return True
-        return False
-
 FreeCADGui.addCommand("PeekOnBlockModel", PeekOnBlockModel())

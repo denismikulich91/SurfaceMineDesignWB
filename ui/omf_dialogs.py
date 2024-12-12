@@ -1,7 +1,6 @@
 from PySide2.QtWidgets import QFileDialog
 from PySide import QtWidgets, QtCore
 import FreeCADGui, FreeCAD
-import time
 from features.block_model import BlockModel
 from utils.bm_handler import BlockModelHandler
 import Mesh, Part

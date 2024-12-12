@@ -6,6 +6,7 @@ from commands.create_bench import CreateBench
 from commands.create_pit import CreatePit
 from commands.import_omf import ImportOmf
 from commands.bm_peek import PeekOnBlockModel
+from commands.create_optimization_parameters import CreateOptimizationParameters
 
 # TODO: Make BM a custom feature
 # TODO: give user an option to select datasets to import
@@ -21,7 +22,7 @@ class SurfaceMineDesign (Workbench):
         It is executed once in a FreeCAD session followed by the Activated function.
         """
 
-        self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit", "ImportOmf", "PeekOnBlockModel"]
+        self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit", "ImportOmf", "PeekOnBlockModel", "CreateOptimizationParameters"]
         self.appendToolbar("SurfaceMineDesignWorkbench", self.list)
 
 

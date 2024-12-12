@@ -1,0 +1,15 @@
+{
+	"code-runner.executorMap": {
+		"python": "C:\\\"Program Files\"\\\"FreeCAD 1.0\"\\bin\\python.exe run_app.py"
+	},
+	"python.analysis.typeCheckingMode": "basic",
+	"[python]": {
+		"editor.defaultFormatter": "ms-python.python"
+	},
+	"python.linting.pylintArgs": [
+		"--disable=C0114", // Missing module docstring
+		"--disable=C0115", // Missing class docstring
+		"--disable=C0116" // Missing function or method docstring
+	],
+	"editor.formatOnSave": true
+}

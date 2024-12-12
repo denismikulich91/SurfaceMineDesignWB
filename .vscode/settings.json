@@ -1,6 +1,6 @@
 {
 	"code-runner.executorMap": {
-		"python": "C:\\\"Program Files\"\\\"FreeCAD 1.0\"\\bin\\python.exe run_app.py"
+		"python": "/Applications/FreeCAD.app/Contents/Resources/bin/python"
 	},
 	"python.analysis.typeCheckingMode": "basic",
 	"[python]": {

@@ -17,8 +17,13 @@ This workbench is under active development. As each feature is completed, there 
   - This is a tool to design pit slope and to calculate parameters to meet the target slope angle. I have incorporated it with FreeCAD workbench. The tool description is on my LinkedIn [page:](https://www.linkedin.com/feed/update/urn:li:activity:7250442808824664065/) ✅
 
 - **OMF Integration (Not started)**  
-  - Full OMF integration for importing, exporting, and browsing data using [OMF Python](https://github.com/gmggroup/omf-python) (not started).
+  - Full OMF integration for importing, exporting, and browsing data using [OMF Python](https://github.com/gmggroup/omf-python) (import is implemented).
 
+- **Block Modeling Tool (Not started)**  
+  - Regular block modeling browsing and visualization tool (implemented, may require serialization process optimization)
+
+  *Official documentation for OMF and block modelling is not ready yet, but there is relatively good description on my LinkedIn [article](https://www.linkedin.com/pulse/open-source-freecad-workbench-parametric-pit-design-drop-mikulich-nmtre)*
+  
 - **Pit Optimization (Not started)**  
   - Incorporate withtin the workbench an optimization open-source tool by [Matthew Deutsch](https://github.com/MineFlowCSM/MineFlow) to calculate ultimate pit limits. Detailed description is [here](https://github.com/MineFlowCSM/MineFlow/blob/df0f30aabea494371704a926ba47f6166631774d/deutsch2022mineflow.pdf) (not started)
   - Create UX for user to fill up basic optimization parameters needed to calculate a value for each block.

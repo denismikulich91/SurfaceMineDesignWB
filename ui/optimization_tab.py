@@ -5,12 +5,11 @@ class OptimizationTab(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.setWindowTitle("Custom Data Input Tab")
+        self.setWindowTitle("Pit optimization parameters")
 
         # Create layout and widgets
         layout = QtWidgets.QVBoxLayout()
 
-        # Add a label
         label = QtWidgets.QLabel("Please fill in the data:")
         layout.addWidget(label)
 

@@ -31,67 +31,70 @@ class BlockModel:
         return self.Type
 
     def execute(self, obj):
-        start_time = time.time()
+        try:
+            print(obj.PandasQuery)
 
-        editing_mode = 0 if obj.LegendTable else 2
-        obj.setEditorMode("ColorField", editing_mode)
+            start_time = time.time()
+            editing_mode = 0 if obj.LegendTable else 2
+            obj.setEditorMode("ColorField", editing_mode)
 
-        if obj.LegendTable:
-            legends = spreadsheet_to_palette_dict(obj.LegendTable)
+            if obj.LegendTable:
+                legends = spreadsheet_to_palette_dict(obj.LegendTable)
 
-        bm_df = self.bm_dataframe.query(obj.PandasQuery)
-        if obj.IsCompact:
-            BlockModelHandler.make_compact_filtered_model(bm_df)
-            bm_df = bm_df[bm_df['is_outer']]
+            bm_df = self.bm_dataframe.query(obj.PandasQuery)
+            if obj.IsCompact:
+                BlockModelHandler.make_compact_filtered_model(bm_df)
+                bm_df = bm_df[bm_df['is_outer']]
 
-        if len(bm_df) < 1:
-            print("block model has no blocks")
-            return
-        
-        if obj.BlockStyle == "Point":
-            print("Number of visualized blocks: ", len(bm_df))
-
-            xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
-            array_of_arrays = xyz_df.to_numpy().tolist()
-            obj.Shape = self.create_points_feature(array_of_arrays)
-            if obj.ColorField != "None" and obj.LegendTable:
-                bm_df.loc[:, 'color'] = bm_df[obj.ColorField].apply(
-                    lambda value: apply_color_based_on_pallete_dict(legends, obj.ColorField, value)
-                )
-                color_array = bm_df['color'].tolist()
-                obj.ViewObject.PointColorArray = color_array
-            else:
-                default_color = (120, 120, 120)
-                obj.ViewObject.PointColor = default_color
+            if len(bm_df) < 1:
+                print("block model has no blocks")
+                return
             
-        else:
-            print("Number of visualized blocks: ", len(bm_df))
-            xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
-            array_of_arrays = xyz_df.to_numpy().tolist()
-            cubes = []
-            colors = []
+            if obj.BlockStyle == "Point":
+                print("Number of visualized blocks: ", len(bm_df))
 
-            if obj.ColorField != "None" and obj.LegendTable:
-                bm_df.loc[:, 'color'] = bm_df[obj.ColorField].apply(
-                    lambda value: apply_color_based_on_pallete_dict(legends, obj.ColorField, value)
-                )
-
-            for _, row in bm_df.iterrows():
-                cube = Part.makeBox(row['x_size'] * 1000, row['y_size'] * 1000, row['z_size'] * 1000, 
-                                    App.Vector(row['x_coord']*1000, row['y_coord']*1000, row['z_coord']*1000))
-                cubes.append(cube)
+                xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
+                array_of_arrays = xyz_df.to_numpy().tolist()
+                obj.Shape = self.create_points_feature(array_of_arrays)
+                if obj.ColorField != "None" and obj.LegendTable:
+                    bm_df.loc[:, 'color'] = bm_df[obj.ColorField].apply(
+                        lambda value: apply_color_based_on_pallete_dict(legends, obj.ColorField, value)
+                    )
+                    color_array = bm_df['color'].tolist()
+                    obj.ViewObject.PointColorArray = color_array
+                else:
+                    default_color = (120, 120, 120)
+                    obj.ViewObject.PointColor = default_color
                 
-                # Assign color for each cube (6 faces per cube)
-                cube_color = tuple(row['color']) + (1,)
-                colors.extend([cube_color] * 6)
+            else:
+                print("Number of visualized blocks: ", len(bm_df))
+                xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
+                array_of_arrays = xyz_df.to_numpy().tolist()
+                cubes = []
+                colors = []
 
-            compound = Part.makeCompound(cubes)
-            obj.Shape = compound
-            obj.ViewObject.DiffuseColor = colors
+                if obj.ColorField != "None" and obj.LegendTable:
+                    bm_df.loc[:, 'color'] = bm_df[obj.ColorField].apply(
+                        lambda value: apply_color_based_on_pallete_dict(legends, obj.ColorField, value)
+                    )
 
-        end_time = time.time()
-        print(f"Block Model import with type {obj.BlockStyle} took {(end_time - start_time) * 1000:.6f} milliseconds")
+                for _, row in bm_df.iterrows():
+                    cube = Part.makeBox(row['x_size'] * 1000, row['y_size'] * 1000, row['z_size'] * 1000, 
+                                        App.Vector(row['x_coord']*1000, row['y_coord']*1000, row['z_coord']*1000))
+                    cubes.append(cube)
+                    
+                    # Assign color for each cube (6 faces per cube)
+                    cube_color = tuple(row['color']) + (1,)
+                    colors.extend([cube_color] * 6)
 
+                compound = Part.makeCompound(cubes)
+                obj.Shape = compound
+                obj.ViewObject.DiffuseColor = colors
+
+            end_time = time.time()
+            print(f"Block Model import with type {obj.BlockStyle} took {(end_time - start_time) * 1000:.6f} milliseconds")
+        except:
+            print("No pandas query provided, please add query to the block model node to visualize or use a peek tool to check the block model table")
 
     def create_points_feature(self, vertices, name="PointsFeature"):
       """

@@ -23,6 +23,7 @@ class PeekOnBlockModel:
         """Activate the command when BlockModel is selected"""
         selection = FreeCADGui.Selection.getSelection()
         if selection and selection[0].Proxy.__module__ == 'features.block_model':
+            print("Unactive")
             self.active_object = selection[0]
             panel = PeakOnBmDialog(self.active_object)
             FreeCADGui.Control.showDialog(panel)

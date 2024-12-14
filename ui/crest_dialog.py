@@ -14,7 +14,7 @@ class CreateCrestDialog:
         self.object_label = QtWidgets.QLabel("Select Object", self.form)
         self.object_dropdown = QtWidgets.QComboBox(self.form)
         for obj in self.object_list:
-            self.object_dropdown.addItem(obj.Label)
+            self.object_dropdown.addItem(obj)
 
         layout.addWidget(self.object_label)
         layout.addWidget(self.object_dropdown)

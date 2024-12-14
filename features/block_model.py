@@ -96,6 +96,10 @@ class BlockModel:
         except:
             print("No pandas query provided, please add query to the block model node to visualize or use a peek tool to check the block model table")
 
+
+    def get_dataframe_fields(self):
+        return list(self.bm_dataframe.columns)
+    
     def create_points_feature(self, vertices, name="PointsFeature"):
       """
       Creates a FreeCAD feature containing only points from a list of vertices.

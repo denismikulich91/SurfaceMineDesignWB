@@ -186,7 +186,7 @@ class ImportOmfDialog:
             elif element["element"].schema == "org.omf.v2.element.blockmodel.tensorgrid":
                 obj = self.document.addObject("Part::FeaturePython", element["element"].name)
                 handled_bm = BlockModelHandler(element["element"])
-                BlockModel(obj, handled_bm.get_bm_dataframe, "None", None, element["query"], element["visu_type"], element["compact"])
+                BlockModel(obj, handled_bm, "None", None, element["query"], element["visu_type"], element["compact"])
                 obj.recompute()
                 self.object_list.append(obj)
             else:

@@ -6,7 +6,7 @@ from commands.create_bench import CreateBench
 from commands.create_pit import CreatePit
 from commands.import_omf import ImportOmf
 from commands.bm_peek import PeekOnBlockModel
-from commands.create_optimization_parameters import CreateOptimizationParameters
+from commands.create_optimization import CreateOptimization
 
 # TODO: Make BM a custom feature
 # TODO: give user an option to select datasets to import
@@ -25,7 +25,7 @@ class SurfaceMineDesign (Workbench):
         """
 
         self.list = ["CreateToe", "CreateCrest", "CreateBench", "CreatePit",
-                     "ImportOmf", "PeekOnBlockModel", "CreateOptimizationParameters"]
+                     "ImportOmf", "PeekOnBlockModel", "CreateOptimization"]
         self.appendToolbar("SurfaceMineDesignWorkbench", self.list)
 
     def Activated(self):

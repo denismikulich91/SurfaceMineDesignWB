@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from pprint import pformat
 import pandas as pd
 from pandas import DataFrame
@@ -48,7 +47,39 @@ class BlockModelHandler:
             color = (255, 0, 0)
         return color
     
-    
+    @staticmethod
+    def mark_outer_faces(df: pd.DataFrame):
+        # Ensure indices are integers
+        df['i_index'] = df['i_index'].astype(int)
+        df['j_index'] = df['j_index'].astype(int)
+        df['k_index'] = df['k_index'].astype(int)
+
+        index_set = set(zip(df['i_index'], df['j_index'], df['k_index']))
+
+        # Initialize the new column with empty lists
+        df['outer_faces'] = [[] for _ in range(len(df))]
+
+        for idx, row in df.iterrows():
+            i, j, k = row['i_index'], row['j_index'], row['k_index']
+
+            # Define directions and neighbors
+            directions = {
+                '-x': (i - 1, j, k),
+                '+x': (i + 1, j, k),
+                '-y': (i, j - 1, k),
+                '+y': (i, j + 1, k),
+                '-z': (i, j, k - 1),
+                '+z': (i, j, k + 1),
+            }
+            face_codes = {'-x': 1, '+x': 2, '-y': 3, '+y': 4, '-z': 5, '+z': 6}
+
+            # Check neighbors and mark exposed faces
+            exposed_faces = [
+                face_codes[face] for face, neighbor in directions.items()
+                if neighbor not in index_set
+            ]
+
+            df.at[idx, 'outer_faces'] = exposed_faces
     
     @staticmethod
     def make_compact_filtered_model(df: DataFrame):
@@ -79,9 +110,9 @@ class BlockModelHandler:
         y_cumsum = np.cumsum(np.insert(self.bm.tensor_v, 0, 0))[:-1] + origin[1]
         z_cumsum = np.cumsum(np.insert(self.bm.tensor_w, 0, 0))[:-1] + origin[2]
         
-        for i, x in enumerate(self.bm.tensor_u):
+        for k, z in enumerate(self.bm.tensor_w):
             for j, y in enumerate(self.bm.tensor_v):
-                for k, z in enumerate(self.bm.tensor_w):
+                for i, x in enumerate(self.bm.tensor_u):
                     rows.append({
                         'x_size': x, 'y_size': y, 'z_size': z,
                         'x_coord': x_cumsum[i], 'y_coord': y_cumsum[j], 'z_coord': z_cumsum[k],
@@ -122,6 +153,10 @@ class BlockModelHandler:
     @property
     def get_bm_dataframe(self):
         return self._bm_dataframe
+    
+    @property
+    def get_tensors_length(self):
+        return (len(self.bm.tensor_u), len(self.bm.tensor_v), len(self.bm.tensor_w))
 
     @staticmethod
     def get_bm_extends(bm_df) -> dict:

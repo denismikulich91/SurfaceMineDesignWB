@@ -4,3 +4,6 @@ run_app.py
 video
 internal_data
 .vscode
+temp*
+mineflow.exe
+output.txt

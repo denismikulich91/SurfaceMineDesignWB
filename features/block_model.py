@@ -7,25 +7,25 @@ import json
 import pandas as pd
 
 class BlockModel:
-    def __init__(self, obj, bm_dataframe, color_field="None", legend_table=None, pandas_query=None, block_style="Point", is_compact=True):
+    def __init__(self, obj, handled_bm, color_field="None", legend_table=None, pandas_query=None, block_style="Point", is_compact=True):
         self.Type = "BlockModel"
-        self.bm_dataframe = bm_dataframe
+        self.bm_handler = handled_bm
         obj.Proxy = self
         obj.addProperty('App::PropertyLink', 'LegendTable', 'Base', 'Linked legend table').LegendTable = legend_table
         obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Base', 'Block style').BlockStyle = ['Point', 'Block']
         obj.addProperty('App::PropertyBool', 'IsCompact', 'Base', 'Is compact').IsCompact = is_compact
         obj.addProperty('App::PropertyString', 'PandasQuery', 'Base', 'Pandas query').PandasQuery = pandas_query
-        obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *self.bm_dataframe.columns.tolist()]
+        obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *self.bm_handler.get_bm_dataframe.columns.tolist()]
         obj.BlockStyle = block_style
         obj.ColorField = color_field
 
         ViewProviderBlockModel(obj.ViewObject)
 
     def __getstate__(self):
-        return json.dumps(self.bm_dataframe.to_dict())
+        return json.dumps(self.bm_handler.get_bm_dataframe.to_dict())
 
     def __setstate__(self, state):
-        self.bm_dataframe = pd.DataFrame(json.loads(state))
+        self.bm_handler.get_bm_dataframe = pd.DataFrame(json.loads(state))
 
     def get_type(self):
         return self.Type
@@ -41,11 +41,10 @@ class BlockModel:
             if obj.LegendTable:
                 legends = spreadsheet_to_palette_dict(obj.LegendTable)
 
-            bm_df = self.bm_dataframe.query(obj.PandasQuery)
+            bm_df = self.bm_handler.get_bm_dataframe.query(obj.PandasQuery)
             if obj.IsCompact:
                 BlockModelHandler.make_compact_filtered_model(bm_df)
                 bm_df = bm_df[bm_df['is_outer']]
-
             if len(bm_df) < 1:
                 print("block model has no blocks")
                 return
@@ -98,7 +97,7 @@ class BlockModel:
 
 
     def get_dataframe_fields(self):
-        return list(self.bm_dataframe.columns)
+        return list(self.bm_handler.get_bm_dataframe.columns)
     
     def create_points_feature(self, vertices, name="PointsFeature"):
       """

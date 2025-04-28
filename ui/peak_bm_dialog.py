@@ -1,4 +1,4 @@
-from PySide import QtWidgets
+from PySide2 import QtWidgets
 import FreeCADGui, FreeCAD
 from typing import List, Tuple
 

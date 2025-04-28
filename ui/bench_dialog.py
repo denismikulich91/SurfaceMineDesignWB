@@ -1,4 +1,4 @@
-from PySide import QtWidgets
+from PySide2 import QtWidgets
 from typing import List, Tuple, Optional
 import FreeCADGui
 from features.bench import Bench

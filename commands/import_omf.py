@@ -1,8 +1,7 @@
 import FreeCADGui
 import os
 import FreeCAD as App
-from ui.omf_dialogs import select_omf_file, ImportOmfDialog
-import utils.omf as omf
+from ui.omf_dialogs import select_omf_file
 
 
 class ImportOmf:
@@ -24,10 +23,6 @@ class ImportOmf:
         if not omf_file_path:
             print("Empty path returned or cancelled")
             return
-        imported_project = omf.load(omf_file_path)
-        elements = imported_project.elements
-        panel = ImportOmfDialog(doc, elements, group_name)
-        FreeCADGui.Control.showDialog(panel)
 
         
     def IsActive(self):

@@ -2,7 +2,6 @@ from PySide2.QtWidgets import QFileDialog
 from PySide import QtWidgets, QtCore
 import FreeCADGui, FreeCAD
 from features.block_model import BlockModel
-from utils.bm_handler import BlockModelHandler
 import Mesh, Part
 
 def select_omf_file():
@@ -185,8 +184,6 @@ class ImportOmfDialog:
 
             elif element["element"].schema == "org.omf.v2.element.blockmodel.tensorgrid":
                 obj = self.document.addObject("Part::FeaturePython", element["element"].name)
-                handled_bm = BlockModelHandler(element["element"])
-                BlockModel(obj, handled_bm, "None", None, element["query"], element["visu_type"], element["compact"])
                 obj.recompute()
                 self.object_list.append(obj)
             else:

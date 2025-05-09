@@ -21,50 +21,6 @@ import FreeCAD
 # *   USA                                                                   *
 # *                                                                         *
 # ***************************************************************************/
-# TODO: Investigate
-FreeCAD.addImportType("Import format (*.omf)", "Open Mining Format")
-FreeCAD.addExportType("Export format (*.omf)", "Open Mining Format")
-print("Surface Mine Design starts here!!")
-
-import sys
-import subprocess
-from PySide2.QtWidgets import QMessageBox
-
-
-# Dependency check
-required = ['shapely', 'pandas']
-missing = []
-
-try:
-    FreeCAD.Console.PrintMessage("   Printing message\n")
-    print("test")
-    import shapely
-except ImportError:
-    missing.append("shapely")
-try:
-    import pandas
-except ImportError:
-    missing.append("pandas")
-
-def install_packages(packages):
-    for package in packages:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-
-def ask_user_to_install(packages):
-    msg = QMessageBox()
-    msg.setIcon(QMessageBox.Question)
-    msg.setWindowTitle("Install Required Packages")
-    msg.setText(f"The following Python packages are required: {', '.join(packages)}.\n\nInstall now?")
-    msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-    return msg.exec_() == QMessageBox.Ok
-
-if missing:
-    if ask_user_to_install(missing):
-        install_packages(missing)
-    else:
-        # Optionally, warn the user or disable features
-        pass
-
-
+print("Surface Mine Design starts here!")
 
 

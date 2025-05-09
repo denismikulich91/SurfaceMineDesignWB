@@ -2,19 +2,16 @@ import Part
 import FreeCAD as App
 import time
 from utils.utils import spreadsheet_to_palette_dict, apply_color_based_on_pallete_dict
-from utils.bm_handler import BlockModelHandler
 import json
 import pandas as pd
 
 class BlockModel:
-    def __init__(self, obj, handled_bm, color_field="None", legend_table=None, pandas_query=None, block_style="Point", is_compact=True):
+    def __init__(self, obj, name, pushback_condition, color_field="None", legend_table=None, block_style="Point"):
         self.Type = "BlockModel"
-        self.bm_handler = handled_bm
         obj.Proxy = self
         obj.addProperty('App::PropertyLink', 'LegendTable', 'Base', 'Linked legend table').LegendTable = legend_table
-        obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Base', 'Block style').BlockStyle = ['Point', 'Block']
-        obj.addProperty('App::PropertyBool', 'IsCompact', 'Base', 'Is compact').IsCompact = is_compact
-        obj.addProperty('App::PropertyString', 'PandasQuery', 'Base', 'Pandas query').PandasQuery = pandas_query
+        obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Base', 'Block style').BlockStyle = ['Point', 'Block', 'Rectangle']
+        obj.addProperty('App::PropertyString', 'PushbackCondition', 'Base', 'Pushback condition').PushbackCondition = pushback_condition
         obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *self.bm_handler.get_bm_dataframe.columns.tolist()]
         obj.BlockStyle = block_style
         obj.ColorField = color_field
@@ -22,10 +19,10 @@ class BlockModel:
         ViewProviderBlockModel(obj.ViewObject)
 
     def __getstate__(self):
-        return json.dumps(self.bm_handler.get_bm_dataframe.to_dict())
+        return None
 
     def __setstate__(self, state):
-        self.bm_handler.get_bm_dataframe = pd.DataFrame(json.loads(state))
+        return None
 
     def get_type(self):
         return self.Type
@@ -43,7 +40,6 @@ class BlockModel:
 
             bm_df = self.bm_handler.get_bm_dataframe.query(obj.PandasQuery)
             if obj.IsCompact:
-                BlockModelHandler.make_compact_filtered_model(bm_df)
                 bm_df = bm_df[bm_df['is_outer']]
             if len(bm_df) < 1:
                 print("block model has no blocks")

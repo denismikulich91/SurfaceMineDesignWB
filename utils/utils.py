@@ -1,7 +1,21 @@
 from typing import List, Tuple, Dict
 from FreeCAD import Vector
+from enum import Enum
 import re
+import os
 
+const = { "MKS": 1000 }
+
+class BmFieldType(Enum):
+    INDEX = 1
+    BLOCK_CENTROID = 2
+    DENSITY = 3
+    OTHER = 4
+
+def GetProjectRootPath() -> str:
+    current_directory = os.path.dirname(os.path.realpath(__file__))
+    root_directory = os.path.dirname(current_directory)
+    return root_directory
 
 def crossection_to_coords2d(crossection_polygons: List[Vector]) -> List[Tuple[float, float]]:
     coords2d_list = [(point.x, point.y) for point in crossection_polygons]

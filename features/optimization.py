@@ -4,7 +4,6 @@ import time
 import os
 import numpy as np
 import subprocess
-from utils.bm_handler import BlockModelHandler
 
 
 class Optimization:
@@ -87,7 +86,6 @@ class Optimization:
         end_time = time.time()
         print(f"Optimization took {(end_time - start_time) * 1000:.6f} milliseconds")
         bm_for_mesh = bm_df.query(f"{obj.PandasQuery} and shell == 1")
-        BlockModelHandler.mark_outer_faces(bm_for_mesh)
         bm_for_mesh = bm_for_mesh[bm_for_mesh['outer_faces'].apply(lambda faces: len(faces) > 0)]
         triangles = []
         for _, row in bm_for_mesh.iterrows():

@@ -13,7 +13,7 @@ class Toe:
         obj.addProperty('App::PropertyLink', 'ExpansionIgnorePolygon', 'Base', 'Linked Expansion ignore polygon').ExpansionIgnorePolygon = ignore_expan_poly
         obj.addProperty('App::PropertyEnumeration', 'ExpansionOption', 'Parameters', 
                     'Select the expansion option').ExpansionOption = ['Shell expansion', 'Partial expansion', 'No expansion']
-        obj.addProperty('App::PropertyLength', 'Elevation', 'Parameters', '').Elevation = '0m'
+        obj.addProperty('App::PropertyDistance', 'Elevation', 'Parameters', '').Elevation = '0m'
         obj.addProperty('App::PropertyLength', 'BermWidth', 'Parameters', '').BermWidth = '0m'
         obj.addProperty('App::PropertyArea', 'MinimumArea', 'Parameters', '').MinimumArea = '0m^2'
         obj.addProperty('App::PropertyLength', 'SignificantLength', 'Shape', '').SignificantLength = '0m'

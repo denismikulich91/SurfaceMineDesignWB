@@ -2,8 +2,8 @@ import FreeCADGui as Gui
 import os
 import Part # type: ignore
 import FreeCAD as App
-from PySide2 import QtWidgets
-from utils.utils import GetProjectRootPath, const, BmFieldType
+from PySide2 import QtWidgets, QtCore
+from utils.utils import GetProjectRootPath, filter_bm_by_field_condition, validate_condition, const, BmFieldType
 import csv
 import numpy as np
 from features.block_model import BlockModel 
@@ -37,24 +37,41 @@ class ImportBmFromCsv:
 
 class ImportBmFromCsvTaskPanel:
     def __init__(self):
-        ui_path = os.path.join(GetProjectRootPath(), "ui", "test.ui")
+        ui_path = os.path.join(GetProjectRootPath(), "ui", "blockModelImport.ui")
         self.form = Gui.PySideUic.loadUi(ui_path)
         self.bm_path_field = self.form.fileSelector.findChild(QtWidgets.QLineEdit)
         self.bm_fields = []
         self.bm_file_name = ""
         self.bm_full_path = ""
-
         # For Debug
         self.bm_path_field.setText("C:/Users/DMH5/AppData/Roaming/FreeCAD/Mod/SurfaceMineDesign/design_assets/menkar.csv")
-        self.on_file_elector_changed()
+        self.on_file_selector_changed()
         ###########
+        self.form.fileSelector.fileNameSelected.connect(self.on_file_selector_changed)
+        self.form.pushbackCondition.textChanged.connect(self.validate_pushback_condition)
+        QtCore.QTimer.singleShot(100, lambda: self.validate_pushback_condition(""))
 
-        self.form.fileSelector.fileNameSelected.connect(self.on_file_elector_changed)
+    def set_task_ok_enabled(self, enabled=True):
+        mw = Gui.getMainWindow()
+        task_panel = mw.findChild(QtWidgets.QDockWidget, "Tasks")
+        if task_panel:
+            ok_buttons = task_panel.findChildren(QtWidgets.QPushButton)
+            for btn in ok_buttons:
+                if btn.text().lower() in ["ok", "apply"]:
+                    btn.setEnabled(enabled)
 
-    def on_file_elector_changed(self):
+    def validate_pushback_condition(self, text):
+        is_condition_valid = validate_condition(text)
+        if is_condition_valid:
+            self.set_task_ok_enabled()
+            self.form.pushbackCondition.setStyleSheet("")
+        else:
+            self.set_task_ok_enabled(False)
+            self.form.pushbackCondition.setStyleSheet("QLineEdit { border: 1px solid red; }")
+
+    def on_file_selector_changed(self):
         if self.bm_path_field:
             self.bm_full_path = self.bm_path_field.text()
-
         try:
             with open(self.bm_full_path, newline="", encoding="utf-8") as csvfile:
                 reader = csv.reader(csvfile)
@@ -76,6 +93,7 @@ class ImportBmFromCsvTaskPanel:
         self.form.fieldXComboBox.setCurrentText("X")
         self.form.fieldYComboBox.setCurrentText("Y")
         self.form.fieldZComboBox.setCurrentText("Z")
+        self.form.pushbackCondition.setText("<6 & !=0")
         ###########
     
 
@@ -95,7 +113,8 @@ class ImportBmFromCsvTaskPanel:
             return
         
         bm_metadata = {
-            "bm_name": os.path.splitext(os.path.basename(self.bm_full_path))[0],
+            "name": os.path.splitext(os.path.basename(self.bm_full_path))[0],
+            "fields": self.bm_fields,
             "pushback_field": pushback_field,
             "block_size_x": block_size_x,
             "block_size_y": block_size_y,
@@ -106,23 +125,45 @@ class ImportBmFromCsvTaskPanel:
 
         for i in range(0, len(self.bm_fields)):
 
-            if self.bm_fields[i] == block_coords_field_x:
+            if self.bm_fields[i] == pushback_field:
+                arr = np.loadtxt(self.bm_full_path, dtype=np.int32, delimiter=',', skiprows=1, usecols=i)
+                bm_metadata["arrays"][pushback_field] = dict()
+                bm_metadata["arrays"][pushback_field]["array"] = arr
+                bm_metadata["arrays"][pushback_field]["type"] = BmFieldType.PHASE
+
+            elif self.bm_fields[i] == block_coords_field_x:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
                 bm_metadata["arrays"]["x_coords"] = dict()
                 bm_metadata["arrays"]["x_coords"]["array"] = arr * const["MKS"]
                 bm_metadata["arrays"]["x_coords"]["type"] = BmFieldType.BLOCK_CENTROID
+                bm_metadata["x_min"] = arr.min() * const["MKS"]
+                bm_metadata["x_max"] = arr.max() * const["MKS"]
 
             elif self.bm_fields[i] == block_coords_field_y:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
                 bm_metadata["arrays"]["y_coords"] = dict()
                 bm_metadata["arrays"]["y_coords"]["array"] = arr * const["MKS"]
                 bm_metadata["arrays"]["y_coords"]["type"] = BmFieldType.BLOCK_CENTROID
+                bm_metadata["y_min"] = arr.min() * const["MKS"]
+                bm_metadata["y_max"] = arr.max() * const["MKS"]
 
             elif self.bm_fields[i] == block_coords_field_z:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
                 bm_metadata["arrays"]["z_coords"] = dict()
                 bm_metadata["arrays"]["z_coords"]["array"] = arr * const["MKS"]
                 bm_metadata["arrays"]["z_coords"]["type"] = BmFieldType.BLOCK_CENTROID
+                bm_metadata["z_min"] = float(arr.min())
+                bm_metadata["z_max"] = float(arr.max())
+
+                benches = []
+                bench_range = int((bm_metadata["z_max"] - bm_metadata["z_min"]) // bm_metadata["block_size_z"]) + 1
+                
+                for bench in range(bench_range):
+                    true_elevation = bm_metadata["z_min"] - bm_metadata["block_size_z"] / 2
+                    benches.append(true_elevation + bench * bm_metadata["block_size_z"])
+                bm_metadata["benches"] = benches
+
+
 
             elif self.bm_fields[i] == density_field:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
@@ -153,12 +194,26 @@ class ImportBmFromCsvTaskPanel:
                 bm_metadata["arrays"][self.bm_fields[i]]["array"] = arr
                 bm_metadata["arrays"][self.bm_fields[i]]["type"] = BmFieldType.OTHER
 
+
             self.form.progressBar.setValue(int(100 / len(self.bm_fields) * i))
 
-        print(bm_metadata)
+        try:
+            mask = filter_bm_by_field_condition(bm_metadata["arrays"][pushback_field]["array"], pushback_condition)
+            for key, value in bm_metadata["arrays"].items():
+                arr = value["array"]
+                if arr.shape[0] == mask.shape[0]:
+                    value["filtered_array"] = arr[mask]
+        except(ValueError):
+            print("Wrong condition operator syntax!")
+            bm_metadata = dict()
+            return
+        
+        # print(bm_metadata)
+        # print(bm_metadata["z_min"], bm_metadata["z_max"])
+        # print(bm_metadata["benches"])
         doc = App.ActiveDocument
-        obj = doc.addObject("Part::FeaturePython", "block_model")
-        # BlockModel(obj)
+        obj = doc.addObject("Part::FeaturePython", bm_metadata["name"])
+        BlockModel(obj, metadata=bm_metadata, pushback_condition=pushback_condition)
         Gui.Control.closeDialog()
 
 

@@ -1,4 +1,4 @@
-import Part
+import Part # type: ignore
 import FreeCAD as App
 import time
 from utils.utils import spreadsheet_to_palette_dict, apply_color_based_on_pallete_dict
@@ -6,115 +6,45 @@ import json
 import pandas as pd
 
 class BlockModel:
-    def __init__(self, obj, name, pushback_condition, color_field="None", legend_table=None, block_style="Point"):
-        self.Type = "BlockModel"
+    def __init__(self, obj, metadata, pushback_condition, active_bench="None", color_field="None", block_style="Point"):
+
         obj.Proxy = self
-        obj.addProperty('App::PropertyLink', 'LegendTable', 'Base', 'Linked legend table').LegendTable = legend_table
-        obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Base', 'Block style').BlockStyle = ['Point', 'Block', 'Rectangle']
+        obj.addProperty('App::PropertyString', 'Type', 'Base', 'Type').Type = "BlockModel"
+        obj.addProperty("App::PropertyPythonObject", "Metadata", "Base", "Metadata")
+        obj.addProperty('App::PropertyLink', 'StyleTable', 'Style', 'Style Table')
+        obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Style', 'Block style').BlockStyle = ['Point', 'Block', 'Rectangle']
         obj.addProperty('App::PropertyString', 'PushbackCondition', 'Base', 'Pushback condition').PushbackCondition = pushback_condition
-        obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *self.bm_handler.get_bm_dataframe.columns.tolist()]
+        obj.addProperty('App::PropertyEnumeration', 'ActiveBench', 'Base', 'Active Bench').ActiveBench = ["None", *metadata["benches"]]
+        obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *metadata["fields"]]
+        obj.Metadata = metadata
         obj.BlockStyle = block_style
+        obj.ActiveBench = active_bench
         obj.ColorField = color_field
+        obj.setEditorMode("Type", 1)
+
+        self.add_spreadsheet_to_feature(obj)
 
         ViewProviderBlockModel(obj.ViewObject)
 
     def __getstate__(self):
         return None
 
+
     def __setstate__(self, state):
         return None
 
-    def get_type(self):
-        return self.Type
+
+    def get_type(self, obj):
+        return obj.Type
+
 
     def execute(self, obj):
-        try:
-            print(obj.PandasQuery)
-
-            start_time = time.time()
-            editing_mode = 0 if obj.LegendTable else 2
-            obj.setEditorMode("ColorField", editing_mode)
-
-            if obj.LegendTable:
-                legends = spreadsheet_to_palette_dict(obj.LegendTable)
-
-            bm_df = self.bm_handler.get_bm_dataframe.query(obj.PandasQuery)
-            if obj.IsCompact:
-                bm_df = bm_df[bm_df['is_outer']]
-            if len(bm_df) < 1:
-                print("block model has no blocks")
-                return
-            
-            if obj.BlockStyle == "Point":
-                print("Number of visualized blocks: ", len(bm_df))
-
-                xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
-                array_of_arrays = xyz_df.to_numpy().tolist()
-                obj.Shape = self.create_points_feature(array_of_arrays)
-                if obj.ColorField != "None" and obj.LegendTable:
-                    bm_df.loc[:, 'color'] = bm_df[obj.ColorField].apply(
-                        lambda value: apply_color_based_on_pallete_dict(legends, obj.ColorField, value)
-                    )
-                    color_array = bm_df['color'].tolist()
-                    obj.ViewObject.PointColorArray = color_array
-                else:
-                    default_color = (120, 120, 120)
-                    obj.ViewObject.PointColor = default_color
-                
-            else:
-                print("Number of visualized blocks: ", len(bm_df))
-                xyz_df = bm_df[['x_coord', 'y_coord', 'z_coord']] * 1000
-                array_of_arrays = xyz_df.to_numpy().tolist()
-                cubes = []
-                colors = []
-
-                if obj.ColorField != "None" and obj.LegendTable:
-                    bm_df.loc[:, 'color'] = bm_df[obj.ColorField].apply(
-                        lambda value: apply_color_based_on_pallete_dict(legends, obj.ColorField, value)
-                    )
-
-                for _, row in bm_df.iterrows():
-                    cube = Part.makeBox(row['x_size'] * 1000, row['y_size'] * 1000, row['z_size'] * 1000, 
-                                        App.Vector(row['x_coord']*1000, row['y_coord']*1000, row['z_coord']*1000))
-                    cubes.append(cube)
-                    
-                    # Assign color for each cube (6 faces per cube)
-                    cube_color = tuple(row['color']) + (1,)
-                    colors.extend([cube_color] * 6)
-
-                compound = Part.makeCompound(cubes)
-                obj.Shape = compound
-                obj.ViewObject.DiffuseColor = colors
-
-            end_time = time.time()
-            print(f"Block Model import with type {obj.BlockStyle} took {(end_time - start_time) * 1000:.6f} milliseconds")
-        except:
-            print("No pandas query provided, please add query to the block model node to visualize or use a peek tool to check the block model table")
+        pass
 
 
-    def get_dataframe_fields(self):
-        return list(self.bm_handler.get_bm_dataframe.columns)
+    def get_blockmodel_fields(self, obj):
+        return obj.Metadata["fields"]
     
-    def create_points_feature(self, vertices, name="PointsFeature"):
-      """
-      Creates a FreeCAD feature containing only points from a list of vertices.
-      
-      :param vertices: List of points, where each point is a tuple (x, y, z).
-      :param name: Name of the resulting FreeCAD object.
-      :return: The created FreeCAD object.
-      """
-      # Initialize an empty list to hold the points
-      points = []
-
-      # Iterate through the list of vertices and create a point for each
-      for vertex in vertices:
-          point = Part.Vertex(App.Vector(vertex))
-          points.append(point)
-
-      # Combine all points into a compound
-      compound = Part.makeCompound(points)
-      return compound
-  
 
     def onChanged(self, obj, prop):
         if prop == "BlockStyle" and hasattr(obj, "IsCompact"):
@@ -134,6 +64,15 @@ class BlockModel:
         return True  # Allows the deletion of the feature
 
 
+    def add_spreadsheet_to_feature(self, obj):
+        doc = App.ActiveDocument
+        spreadsheet = doc.addObject("Spreadsheet::Sheet", "style_table")
+        spreadsheet.set("A1", "Bench")
+        spreadsheet.set("B1", "Block Count")
+        obj.StyleTable = spreadsheet
+        doc.recompute()
+
+
 class ViewProviderBlockModel:
 
     def __init__(self, obj):
@@ -151,6 +90,11 @@ class ViewProviderBlockModel:
     def attach(self, obj):
         self.Object = obj.Object
         return
+    
+    
+    def claimChildren(self):
+        objs = [self.Object.StyleTable]
+        return objs
 
     def updateData(self, obj, prop):
         if prop == "BlockStyle":

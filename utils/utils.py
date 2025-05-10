@@ -3,14 +3,68 @@ from FreeCAD import Vector
 from enum import Enum
 import re
 import os
-
+import numpy as np
+import re
 const = { "MKS": 1000 }
 
 class BmFieldType(Enum):
     INDEX = 1
     BLOCK_CENTROID = 2
-    DENSITY = 3
-    OTHER = 4
+    PHASE = 3
+    DENSITY = 4
+    OTHER = 5
+
+def is_condition_valid(cond: str) -> bool:
+    cond = cond.strip()
+    pattern = r'^(==|!=|<=|>=|<|>)[ ]*([+-]?([0-9]*[.])?[0-9]+)$'
+    return bool(re.match(pattern, cond))
+
+def filter_bm_by_field_condition(array: np.ndarray, query: str) -> np.ndarray:
+    def parse_condition(cond: str):
+        cond = cond.strip()
+        if not is_condition_valid(cond):
+            raise ValueError(f"Invalid condition: {cond}")
+        match = re.match(r'(==|!=|<=|>=|<|>)[ ]*([+-]?([0-9]*[.])?[0-9]+)', cond)
+        op, value = match.group(1), float(match.group(2))
+        if op == '==':
+            return array == value
+        elif op == '!=':
+            return array != value
+        elif op == '<=':
+            return array <= value
+        elif op == '>=':
+            return array >= value
+        elif op == '<':
+            return array < value
+        elif op == '>':
+            return array > value
+        else:
+            raise ValueError(f"Unknown operator: {op}")
+    
+    # Split by OR
+    or_groups = [grp.strip() for grp in query.split('|')]
+    mask = np.zeros(array.shape, dtype=bool)
+    for group in or_groups:
+        # Split by AND
+        and_conditions = [c.strip() for c in group.split('&')]
+        group_mask = np.ones(array.shape, dtype=bool)
+        for cond in and_conditions:
+            if cond:
+                group_mask &= parse_condition(cond)
+        mask |= group_mask
+    return mask
+
+def validate_condition(text: str) -> bool:
+    if not text.strip():
+        return False
+
+    or_groups = [grp.strip() for grp in text.split('|')]
+    for group in or_groups:
+        and_conditions = [c.strip() for c in group.split('&')]
+        for cond in and_conditions:
+            if cond and not is_condition_valid(cond):
+                return False
+    return True
 
 def GetProjectRootPath() -> str:
     current_directory = os.path.dirname(os.path.realpath(__file__))

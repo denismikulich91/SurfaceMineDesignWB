@@ -93,7 +93,7 @@ class ImportBmFromCsvTaskPanel:
         self.form.fieldXComboBox.setCurrentText("X")
         self.form.fieldYComboBox.setCurrentText("Y")
         self.form.fieldZComboBox.setCurrentText("Z")
-        self.form.pushbackCondition.setText("<6 & !=0")
+        self.form.pushbackCondition.setText("<=6 & !=0")
         ###########
     
 
@@ -116,90 +116,91 @@ class ImportBmFromCsvTaskPanel:
             "name": os.path.splitext(os.path.basename(self.bm_full_path))[0],
             "fields": self.bm_fields,
             "pushback_field": pushback_field,
-            "block_size_x": block_size_x,
-            "block_size_y": block_size_y,
-            "block_size_z": block_size_z,
+            "block_size_x": block_size_x * const["MKS"],
+            "block_size_y": block_size_y * const["MKS"],
+            "block_size_z": block_size_z * const["MKS"],
             "density_field": density_field,
-            "arrays": dict(),
         }
+        arrays = dict()
 
         for i in range(0, len(self.bm_fields)):
 
             if self.bm_fields[i] == pushback_field:
                 arr = np.loadtxt(self.bm_full_path, dtype=np.int32, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"][pushback_field] = dict()
-                bm_metadata["arrays"][pushback_field]["array"] = arr
-                bm_metadata["arrays"][pushback_field]["type"] = BmFieldType.PHASE
+                arrays[pushback_field] = dict()
+                arrays[pushback_field]["array"] = arr
+                arrays[pushback_field]["type"] = BmFieldType.PHASE
 
             elif self.bm_fields[i] == block_coords_field_x:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"]["x_coords"] = dict()
-                bm_metadata["arrays"]["x_coords"]["array"] = arr * const["MKS"]
-                bm_metadata["arrays"]["x_coords"]["type"] = BmFieldType.BLOCK_CENTROID
-                bm_metadata["x_min"] = arr.min() * const["MKS"]
-                bm_metadata["x_max"] = arr.max() * const["MKS"]
+                arrays["x_coords"] = dict()
+                arrays["x_coords"]["array"] = arr * const["MKS"]
+                arrays["x_coords"]["type"] = BmFieldType.BLOCK_CENTROID
+                bm_metadata["x_min"] = float(arr.min()) * const["MKS"]
+                bm_metadata["x_max"] = float(arr.max()) * const["MKS"]
 
             elif self.bm_fields[i] == block_coords_field_y:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"]["y_coords"] = dict()
-                bm_metadata["arrays"]["y_coords"]["array"] = arr * const["MKS"]
-                bm_metadata["arrays"]["y_coords"]["type"] = BmFieldType.BLOCK_CENTROID
-                bm_metadata["y_min"] = arr.min() * const["MKS"]
-                bm_metadata["y_max"] = arr.max() * const["MKS"]
+                arrays["y_coords"] = dict()
+                arrays["y_coords"]["array"] = arr * const["MKS"]
+                arrays["y_coords"]["type"] = BmFieldType.BLOCK_CENTROID
+                bm_metadata["y_min"] = float(arr.min()) * const["MKS"]
+                bm_metadata["y_max"] = float(arr.max()) * const["MKS"]
 
             elif self.bm_fields[i] == block_coords_field_z:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"]["z_coords"] = dict()
-                bm_metadata["arrays"]["z_coords"]["array"] = arr * const["MKS"]
-                bm_metadata["arrays"]["z_coords"]["type"] = BmFieldType.BLOCK_CENTROID
-                bm_metadata["z_min"] = float(arr.min())
-                bm_metadata["z_max"] = float(arr.max())
+                arrays["z_coords"] = dict()
+                arrays["z_coords"]["array"] = arr * const["MKS"]
+                arrays["z_coords"]["type"] = BmFieldType.BLOCK_CENTROID
+                bm_metadata["z_min"] = float(arr.min()) * const["MKS"]
+                bm_metadata["z_max"] = float(arr.max()) * const["MKS"]
 
                 benches = []
                 bench_range = int((bm_metadata["z_max"] - bm_metadata["z_min"]) // bm_metadata["block_size_z"]) + 1
                 
                 for bench in range(bench_range):
                     true_elevation = bm_metadata["z_min"] - bm_metadata["block_size_z"] / 2
-                    benches.append(true_elevation + bench * bm_metadata["block_size_z"])
+                    benches.append((true_elevation + bench * bm_metadata["block_size_z"]) / const["MKS"])
                 bm_metadata["benches"] = benches
 
 
 
             elif self.bm_fields[i] == density_field:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"]["density"] = dict()
-                bm_metadata["arrays"]["density"]["array"] = arr
-                bm_metadata["arrays"]["density"]["type"] = BmFieldType.DENSITY
+                arrays["density"] = dict()
+                arrays["density"]["array"] = arr
+                arrays["density"]["type"] = BmFieldType.DENSITY
 
             elif self.bm_fields[i].upper() == "I":
                 arr = np.loadtxt(self.bm_full_path, dtype=np.int32, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"]["i"] = dict()
-                bm_metadata["arrays"]["i"]["array"] = arr
-                bm_metadata["arrays"]["i"]["type"] = BmFieldType.INDEX
+                arrays["i"] = dict()
+                arrays["i"]["array"] = arr
+                arrays["i"]["type"] = BmFieldType.INDEX
 
             elif self.bm_fields[i].upper() == "J":
                 arr = np.loadtxt(self.bm_full_path, dtype=np.int32, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"]["j"] = dict()
-                bm_metadata["arrays"]["j"]["array"] = arr
-                bm_metadata["arrays"]["j"]["type"] = BmFieldType.INDEX
+                arrays["j"] = dict()
+                arrays["j"]["array"] = arr
+                arrays["j"]["type"] = BmFieldType.INDEX
 
             elif self.bm_fields[i].upper() == "K":
                 arr = np.loadtxt(self.bm_full_path, dtype=np.int32, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"]["k"] = dict()
-                bm_metadata["arrays"]["k"]["array"] = arr
-                bm_metadata["arrays"]["k"]["type"] = BmFieldType.INDEX
+                arrays["k"] = dict()
+                arrays["k"]["array"] = arr
+                arrays["k"]["type"] = BmFieldType.INDEX
             else:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
-                bm_metadata["arrays"][self.bm_fields[i]] = dict()
-                bm_metadata["arrays"][self.bm_fields[i]]["array"] = arr
-                bm_metadata["arrays"][self.bm_fields[i]]["type"] = BmFieldType.OTHER
+                arrays[self.bm_fields[i]] = dict()
+                arrays[self.bm_fields[i]]["array"] = arr
+                arrays[self.bm_fields[i]]["type"] = BmFieldType.OTHER
 
 
             self.form.progressBar.setValue(int(100 / len(self.bm_fields) * i))
 
+        # TODO: Do I need to do this here? Maybe it worth to consider to group masks in onChanged method
         try:
-            mask = filter_bm_by_field_condition(bm_metadata["arrays"][pushback_field]["array"], pushback_condition)
-            for key, value in bm_metadata["arrays"].items():
+            mask = filter_bm_by_field_condition(arrays[pushback_field]["array"], pushback_condition)
+            for key, value in arrays.items():
                 arr = value["array"]
                 if arr.shape[0] == mask.shape[0]:
                     value["filtered_array"] = arr[mask]
@@ -209,11 +210,12 @@ class ImportBmFromCsvTaskPanel:
             return
         
         # print(bm_metadata)
+        print(arrays)
         # print(bm_metadata["z_min"], bm_metadata["z_max"])
         # print(bm_metadata["benches"])
         doc = App.ActiveDocument
         obj = doc.addObject("Part::FeaturePython", bm_metadata["name"])
-        BlockModel(obj, metadata=bm_metadata, pushback_condition=pushback_condition)
+        BlockModel(obj, metadata=bm_metadata, arrays=arrays, pushback_condition=pushback_condition)
         Gui.Control.closeDialog()
 
 

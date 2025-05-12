@@ -1,59 +1,118 @@
 import Part # type: ignore
 import FreeCAD as App
-import time
-from utils.utils import spreadsheet_to_palette_dict, apply_color_based_on_pallete_dict
-import json
+from utils.utils import filter_bm_by_field_condition, const, BmFieldType
 import pandas as pd
+import numpy as np
+import os
+
 
 class BlockModel:
-    def __init__(self, obj, metadata, pushback_condition, active_bench="None", color_field="None", block_style="Point"):
-
+    def __init__(self, obj, metadata, arrays, pushback_condition, active_bench="None", color_field="None"):
+        self.Object = obj
+        # self.Arrays = arrays
         obj.Proxy = self
         obj.addProperty('App::PropertyString', 'Type', 'Base', 'Type').Type = "BlockModel"
         obj.addProperty("App::PropertyPythonObject", "Metadata", "Base", "Metadata")
-        obj.addProperty('App::PropertyLink', 'StyleTable', 'Style', 'Style Table')
-        obj.addProperty('App::PropertyEnumeration', 'BlockStyle', 'Style', 'Block style').BlockStyle = ['Point', 'Block', 'Rectangle']
+        obj.addProperty('App::PropertyLink', 'StyleTable', 'Style', 'Style table')
+        obj.addProperty('App::PropertyFloatConstraint', 'BlockSizeFactor', 'Style', 'Block size factor').BlockSizeFactor = 1.0
         obj.addProperty('App::PropertyString', 'PushbackCondition', 'Base', 'Pushback condition').PushbackCondition = pushback_condition
-        obj.addProperty('App::PropertyEnumeration', 'ActiveBench', 'Base', 'Active Bench').ActiveBench = ["None", *metadata["benches"]]
+        obj.addProperty('App::PropertyEnumeration', 'ActiveBench', 'Base', 'Active bench').ActiveBench = ["None", *metadata["benches"]]
         obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *metadata["fields"]]
+        obj.addProperty("App::PropertyFileIncluded", "ArraysArchive", "Base", "Arrays archive file")
         obj.Metadata = metadata
-        obj.BlockStyle = block_style
         obj.ActiveBench = active_bench
         obj.ColorField = color_field
         obj.setEditorMode("Type", 1)
-
+        self.save_arrays(obj, arrays)
+        self.Arrays = self.load_arrays_from_npz(obj.ArraysArchive)
         self.add_spreadsheet_to_feature(obj)
 
         ViewProviderBlockModel(obj.ViewObject)
 
-    def __getstate__(self):
-        return None
+    def save_arrays(self, obj, arrays):
+        """Save arrays dict to .npz and assign to ArraysArchive property."""
+        fcstd_path = App.ActiveDocument.FileName
+        if not fcstd_path:
+            raise RuntimeError("Please save the FreeCAD document before saving arrays.")
+        project_dir = os.path.dirname(fcstd_path)
+        npz_path = os.path.join(project_dir, "arrays_archive.npz")
+        arrays_to_save = {}
+        for key, value in arrays.items():
+            if 'array' in value:
+                arrays_to_save[f"{key}_&&_array_&&_{value['type'].value}"] = value['array']
+            if 'filtered_array' in value:
+                arrays_to_save[f"{key}_&&_filtered_array_&&_{value['type'].value}"] = value['filtered_array']
+        np.savez(npz_path, **arrays_to_save)
+        obj.ArraysArchive = npz_path
+        if os.path.exists(npz_path):
+            os.remove(npz_path)
+    
 
-
-    def __setstate__(self, state):
-        return None
-
-
-    def get_type(self, obj):
-        return obj.Type
-
-
-    def execute(self, obj):
-        pass
-
+    def load_arrays_from_npz(self, npz_path):
+        arrays = {}
+        with np.load(npz_path) as data:
+            for key in data.files:
+                parts = key.split('_&&_')
+                if len(parts) != 3:
+                    continue
+                main_key, array_key, enum_int = parts
+                enum_type = BmFieldType(int(enum_int))
+                arr = data[key]
+                if main_key not in arrays:
+                    arrays[main_key] = {}
+                arrays[main_key][array_key] = arr
+                arrays[main_key]['type'] = enum_type
+        return arrays
+    
+    def attach(self, obj):
+        self.Object = obj
+        if obj.ArraysArchive and os.path.exists(obj.ArraysArchive):
+            self.Arrays = self.load_arrays_from_npz(obj.ArraysArchive)
+        else:
+            self.Arrays = None
 
     def get_blockmodel_fields(self, obj):
         return obj.Metadata["fields"]
     
-
     def onChanged(self, obj, prop):
-        if prop == "BlockStyle" and hasattr(obj, "IsCompact"):
-            if obj.BlockStyle == "Block":
-                obj.IsCompact = True
-                print("Auto switch")
-            if obj.BlockStyle == "Point":
-                obj.IsCompact = False
-                print("Auto switch")
+        if prop == "ActiveBench" and hasattr(obj, "BlockSizeFactor"):
+            if obj.ActiveBench != "None":
+                if self.Arrays is None and os.path.exists(obj.ArraysArchive):
+                    self.Arrays = self.load_arrays_from_npz(obj.ArraysArchive)
+                if not hasattr(self, "Arrays") or self.Arrays is None:
+                    return
+                try:
+                    bench_val = float(obj.ActiveBench)
+                except Exception:
+                    bench_val = 0.0
+
+                z_arr = self.Arrays["z_coords"]["filtered_array"]
+                mask = np.isclose(z_arr, bench_val * const["MKS"] + obj.Metadata['block_size_z'] / 2)
+                for key, value in self.Arrays.items():
+                    arr = value["filtered_array"]
+                    if arr.shape[0] == mask.shape[0]:
+                        value["bench_array"] = arr[mask]
+
+                x_arr = self.Arrays["x_coords"]["bench_array"]
+                y_arr = self.Arrays["y_coords"]["bench_array"]
+                bx = obj.Metadata["block_size_x"] * obj.BlockSizeFactor
+                by = obj.Metadata["block_size_y"] * obj.BlockSizeFactor
+
+                blocks = []
+                for i in range(len(x_arr)):
+                    cx, cy = x_arr[i], y_arr[i]
+                    p1 = App.Vector(cx - bx / 2, cy - by / 2, bench_val)
+                    p2 = App.Vector(cx + bx / 2, cy - by / 2, bench_val)
+                    p3 = App.Vector(cx + bx / 2, cy + by / 2, bench_val)
+                    p4 = App.Vector(cx - bx / 2, cy + by / 2, bench_val)
+                    wire = Part.makePolygon([p1, p2, p3, p4, p1])
+                    blocks.append(wire)
+
+                if blocks:
+                    compound = Part.makeCompound(blocks)
+                    obj.Shape = compound
+                else:
+                    obj.Shape = Part.Shape()
 
 
     def onDelete(self, obj, subelements):
@@ -63,6 +122,20 @@ class BlockModel:
         print("Box feature is being deleted due to mesh deletion.")
         return True  # Allows the deletion of the feature
 
+    def __getstate__(self):
+        return None
+
+
+    def __setstate__(self, state):
+        self.Arrays = None
+
+
+    def get_type(self, obj):
+        return obj.Type
+
+
+    def execute(self, obj):
+        pass
 
     def add_spreadsheet_to_feature(self, obj):
         doc = App.ActiveDocument
@@ -76,20 +149,15 @@ class BlockModel:
 class ViewProviderBlockModel:
 
     def __init__(self, obj):
-        """
-        Set this object to the proxy object of the actual view provider
-        """
         obj.Proxy = self
-        obj.Visibility = True
-        if self.Object.BlockStyle == "Block":
-          obj.LineWidth = 1
-          obj.PointSize = 1
-        else:
-          obj.PointSize = 10
+        obj.LineColor = (255, 0, 255)
+        obj.PointSize = 1
+        # obj.PointColor = (255, 0, 200)
+        obj.LineWidth = 2.0
 
-    def attach(self, obj):
-        self.Object = obj.Object
-        return
+
+    def attach(self, vobj):
+        self.Object = vobj.Object
     
     
     def claimChildren(self):
@@ -97,14 +165,12 @@ class ViewProviderBlockModel:
         return objs
 
     def updateData(self, obj, prop):
-        if prop == "BlockStyle":
-            if obj.BlockStyle == "Block":
-                obj.ViewObject.LineWidth = 1
-                obj.ViewObject.PointSize = 1
-                obj.ViewObject.PointSize = 1
-                obj.ViewObject.PointColor = (0, 0, 0)
-            else:
-                obj.ViewObject.PointSize = 10
+        # if prop == "ActiveBench":
+        #     obj.ViewObject.LineWidth = 1
+        #     obj.ViewObject.PointSize = 1
+        #     obj.ViewObject.PointSize = 1
+        #     obj.ViewObject.PointColor = (0, 0, 0)
+        pass
 
 
     def getDisplayModes(self, obj):

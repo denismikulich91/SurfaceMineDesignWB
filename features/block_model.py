@@ -30,6 +30,7 @@ class BlockModel:
         ViewProviderBlockModel(obj.ViewObject)
 
     def save_arrays(self, obj, arrays):
+        print("arrays saved...")
         """Save arrays dict to .npz and assign to ArraysArchive property."""
         fcstd_path = App.ActiveDocument.FileName
         if not fcstd_path:
@@ -49,6 +50,7 @@ class BlockModel:
     
 
     def load_arrays_from_npz(self, npz_path):
+        print("arrays loading...")
         arrays = {}
         with np.load(npz_path) as data:
             for key in data.files:
@@ -85,10 +87,12 @@ class BlockModel:
                     bench_val = float(obj.ActiveBench)
                 except Exception:
                     bench_val = 0.0
-
                 z_arr = self.Arrays["z_coords"]["filtered_array"]
                 mask = np.isclose(z_arr, bench_val * const["MKS"] + obj.Metadata['block_size_z'] / 2)
                 for key, value in self.Arrays.items():
+                    if "filtered_array" not in value:
+                        App.Console.PrintDeveloperWarning(f"{key} field doesn't have filtered_array key")
+                        continue
                     arr = value["filtered_array"]
                     if arr.shape[0] == mask.shape[0]:
                         value["bench_array"] = arr[mask]

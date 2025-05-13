@@ -44,7 +44,7 @@ class ImportBmFromCsvTaskPanel:
         self.bm_file_name = ""
         self.bm_full_path = ""
         # For Debug
-        self.bm_path_field.setText("C:/Users/DMH5/AppData/Roaming/FreeCAD/Mod/SurfaceMineDesign/design_assets/menkar.csv")
+        self.bm_path_field.setText("C:/Users/DMH5/AppData/Roaming/FreeCAD/Mod/SurfaceMineDesign/design_assets/tereza_bm_40x40x20.csv")
         self.on_file_selector_changed()
         ###########
         self.form.fileSelector.fileNameSelected.connect(self.on_file_selector_changed)
@@ -163,8 +163,6 @@ class ImportBmFromCsvTaskPanel:
                     benches.append((true_elevation + bench * bm_metadata["block_size_z"]) / const["MKS"])
                 bm_metadata["benches"] = benches
 
-
-
             elif self.bm_fields[i] == density_field:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
                 arrays["density"] = dict()
@@ -189,12 +187,16 @@ class ImportBmFromCsvTaskPanel:
                 arrays["k"]["array"] = arr
                 arrays["k"]["type"] = BmFieldType.INDEX
             else:
-                arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
-                arrays[self.bm_fields[i]] = dict()
-                arrays[self.bm_fields[i]]["array"] = arr
-                arrays[self.bm_fields[i]]["type"] = BmFieldType.OTHER
+                try:
+                    arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
+                except ValueError:
+                    arr = np.loadtxt(self.bm_full_path, dtype=str, delimiter=',', skiprows=1, usecols=i)
+                    App.Console.PrintDeveloperWarning(f"\n{self.bm_fields[i]} field is detected as string\n")
 
-
+                arrays[self.bm_fields[i]] = {
+                    "array": arr,
+                    "type": BmFieldType.OTHER
+                }
             self.form.progressBar.setValue(int(100 / len(self.bm_fields) * i))
 
         # TODO: Do I need to do this here? Maybe it worth to consider to group masks in onChanged method
@@ -205,12 +207,12 @@ class ImportBmFromCsvTaskPanel:
                 if arr.shape[0] == mask.shape[0]:
                     value["filtered_array"] = arr[mask]
         except(ValueError):
-            print("Wrong condition operator syntax!")
+            App.Console.PrintError("\nWrong condition operator syntax!\n")
             bm_metadata = dict()
             return
         
         # print(bm_metadata)
-        print(arrays)
+        # print(arrays)
         # print(bm_metadata["z_min"], bm_metadata["z_max"])
         # print(bm_metadata["benches"])
         doc = App.ActiveDocument

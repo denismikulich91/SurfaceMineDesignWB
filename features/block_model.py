@@ -13,14 +13,16 @@ class BlockModel:
         obj.Proxy = self
         obj.addProperty('App::PropertyString', 'Type', 'Base', 'Type').Type = "BlockModel"
         obj.addProperty("App::PropertyPythonObject", "Metadata", "Base", "Metadata")
+        obj.addProperty('App::PropertyEnumeration', 'Mode', 'Base', 'Mode').Mode = ["Debugging", "Analysing", "Reporting"]
         obj.addProperty('App::PropertyLink', 'StyleTable', 'Style', 'Style table')
-        obj.addProperty('App::PropertyFloatConstraint', 'BlockSizeFactor', 'Style', 'Block size factor').BlockSizeFactor = 1.0
+        obj.addProperty('App::PropertyFloatConstraint', 'BlockSizeFactor', 'Style', 'Block size factor').BlockSizeFactor = (1.0, 0.1, 1.0, 0.1)
         obj.addProperty('App::PropertyString', 'PushbackCondition', 'Base', 'Pushback condition').PushbackCondition = pushback_condition
         obj.addProperty('App::PropertyEnumeration', 'ActiveBench', 'Base', 'Active bench').ActiveBench = ["None", *metadata["benches"]]
         obj.addProperty('App::PropertyEnumeration', 'ColorField', 'Base', 'Color field').ColorField = ["None", *metadata["fields"]]
         obj.addProperty("App::PropertyFileIncluded", "ArraysArchive", "Base", "Arrays archive file")
         obj.Metadata = metadata
         obj.ActiveBench = active_bench
+        obj.Mode = "Debugging"
         obj.ColorField = color_field
         obj.setEditorMode("Type", 1)
         self.save_arrays(obj, arrays)
@@ -30,7 +32,6 @@ class BlockModel:
         ViewProviderBlockModel(obj.ViewObject)
 
     def save_arrays(self, obj, arrays):
-        print("arrays saved...")
         """Save arrays dict to .npz and assign to ArraysArchive property."""
         fcstd_path = App.ActiveDocument.FileName
         if not fcstd_path:
@@ -47,10 +48,8 @@ class BlockModel:
         obj.ArraysArchive = npz_path
         if os.path.exists(npz_path):
             os.remove(npz_path)
-    
 
     def load_arrays_from_npz(self, npz_path):
-        print("arrays loading...")
         arrays = {}
         with np.load(npz_path) as data:
             for key in data.files:
@@ -77,46 +76,16 @@ class BlockModel:
         return obj.Metadata["fields"]
     
     def onChanged(self, obj, prop):
-        if prop == "ActiveBench" and hasattr(obj, "BlockSizeFactor"):
-            if obj.ActiveBench != "None":
-                if self.Arrays is None and os.path.exists(obj.ArraysArchive):
-                    self.Arrays = self.load_arrays_from_npz(obj.ArraysArchive)
-                if not hasattr(self, "Arrays") or self.Arrays is None:
-                    return
-                try:
-                    bench_val = float(obj.ActiveBench)
-                except Exception:
-                    bench_val = 0.0
-                z_arr = self.Arrays["z_coords"]["filtered_array"]
-                mask = np.isclose(z_arr, bench_val * const["MKS"] + obj.Metadata['block_size_z'] / 2)
-                for key, value in self.Arrays.items():
-                    if "filtered_array" not in value:
-                        App.Console.PrintDeveloperWarning(f"{key} field doesn't have filtered_array key")
-                        continue
-                    arr = value["filtered_array"]
-                    if arr.shape[0] == mask.shape[0]:
-                        value["bench_array"] = arr[mask]
-
-                x_arr = self.Arrays["x_coords"]["bench_array"]
-                y_arr = self.Arrays["y_coords"]["bench_array"]
-                bx = obj.Metadata["block_size_x"] * obj.BlockSizeFactor
-                by = obj.Metadata["block_size_y"] * obj.BlockSizeFactor
-
-                blocks = []
-                for i in range(len(x_arr)):
-                    cx, cy = x_arr[i], y_arr[i]
-                    p1 = App.Vector(cx - bx / 2, cy - by / 2, bench_val)
-                    p2 = App.Vector(cx + bx / 2, cy - by / 2, bench_val)
-                    p3 = App.Vector(cx + bx / 2, cy + by / 2, bench_val)
-                    p4 = App.Vector(cx - bx / 2, cy + by / 2, bench_val)
-                    wire = Part.makePolygon([p1, p2, p3, p4, p1])
-                    blocks.append(wire)
-
-                if blocks:
-                    compound = Part.makeCompound(blocks)
-                    obj.Shape = compound
-                else:
-                    obj.Shape = Part.Shape()
+        if prop == "ActiveBench" and hasattr(obj, "ActiveBench"):
+            if obj.ActiveBench != "None" :
+                self._on_active_bench_changed(obj)
+        if prop == "BlockSizeFactor" and hasattr(obj, "BlockSizeFactor"):
+            if hasattr(obj, "ActiveBench"):
+                self._on_active_bench_changed(obj)
+        if prop == "Mode" and hasattr(obj, "Mode"):
+            if hasattr(self, "Arrays"):
+                self._on_mode_changed(obj)
+                self._on_active_bench_changed(obj)
 
 
     def onDelete(self, obj, subelements):
@@ -125,18 +94,91 @@ class BlockModel:
         """
         print("Box feature is being deleted due to mesh deletion.")
         return True  # Allows the deletion of the feature
+    
+    def _on_active_bench_changed(self, obj):
+        if self.Arrays is None and os.path.exists(obj.ArraysArchive):
+            self.Arrays = self.load_arrays_from_npz(obj.ArraysArchive)
+        if not hasattr(self, "Arrays") or self.Arrays is None:
+            return
+        try:
+            bench_val = float(obj.ActiveBench)
+        except Exception:
+            bench_val = 0.0
+        z_arr = self.Arrays["z_coords"]["filtered_array"]
+        mask = np.isclose(z_arr, bench_val * const["MKS"] + obj.Metadata['block_size_z'] / 2)
+        if obj.Mode == "Analysing":
+            for key, value in self.Arrays.items():
+                if "filtered_array" not in value:
+                    App.Console.PrintDeveloperWarning(f"{key} field doesn't have filtered_array key\n")
+                    continue
+                arr = value["filtered_array"]
+                if arr.shape[0] == mask.shape[0]:
+                    value["bench_array"] = arr[mask]
+
+        if obj.Mode == "Debugging":
+            i_arr_filtered = self.Arrays["i"]["filtered_array"][mask]
+            j_arr_filtered = self.Arrays["j"]["filtered_array"][mask]
+            x_arr_coords = self.Arrays["x_coords"]["filtered_array"][mask]
+            y_arr_coords = self.Arrays["y_coords"]["filtered_array"][mask]
+            debug_mask = np.zeros(i_arr_filtered.shape, dtype=bool)
+            for j_val in np.unique(j_arr_filtered):
+                indices = np.where(j_arr_filtered == j_val)[0]
+                i_values = i_arr_filtered[indices]
+
+                if len(indices) > 0:
+                    min_idx = indices[np.argmin(i_values)]
+                    max_idx = indices[np.argmax(i_values)]
+                    debug_mask[min_idx] = True
+                    debug_mask[max_idx] = True
+
+            # Second pass: For each unique i, find min/max j
+            for i_val in np.unique(i_arr_filtered):
+                indices = np.where(i_arr_filtered == i_val)[0]
+                j_values = j_arr_filtered[indices]
+
+                if len(indices) > 0:
+                    min_idx = indices[np.argmin(j_values)]
+                    max_idx = indices[np.argmax(j_values)]
+                    debug_mask[min_idx] = True
+                    debug_mask[max_idx] = True
+                
+            self.Arrays["x_coords"]["bench_array"] = x_arr_coords[debug_mask]
+            self.Arrays["y_coords"]["bench_array"] = y_arr_coords[debug_mask]
+
+        x_arr = self.Arrays["x_coords"]["bench_array"]
+        y_arr = self.Arrays["y_coords"]["bench_array"]
+        bx = obj.Metadata["block_size_x"] * obj.BlockSizeFactor
+        by = obj.Metadata["block_size_y"] * obj.BlockSizeFactor
+
+        blocks = []
+        for i in range(len(x_arr)):
+            cx, cy = x_arr[i], y_arr[i]
+            p1 = App.Vector(cx - bx / 2, cy - by / 2, bench_val * const["MKS"])
+            p2 = App.Vector(cx + bx / 2, cy - by / 2, bench_val * const["MKS"])
+            p3 = App.Vector(cx + bx / 2, cy + by / 2, bench_val * const["MKS"])
+            p4 = App.Vector(cx - bx / 2, cy + by / 2, bench_val * const["MKS"])
+            wire = Part.makePolygon([p1, p2, p3, p4, p1])
+            blocks.append(wire)
+
+        if blocks:
+            compound = Part.makeCompound(blocks)
+            obj.Shape = compound
+        else:
+            obj.Shape = Part.Shape()
+
+    def _on_mode_changed(self, obj):
+        if self.Arrays is None and os.path.exists(obj.ArraysArchive):
+            self.Arrays = self.load_arrays_from_npz(obj.ArraysArchive)
+
 
     def __getstate__(self):
         return None
 
-
     def __setstate__(self, state):
         self.Arrays = None
 
-
     def get_type(self, obj):
         return obj.Type
-
 
     def execute(self, obj):
         pass
@@ -156,7 +198,7 @@ class ViewProviderBlockModel:
         obj.Proxy = self
         obj.LineColor = (255, 0, 255)
         obj.PointSize = 1
-        # obj.PointColor = (255, 0, 200)
+        obj.PointColor = (255, 0, 255)
         obj.LineWidth = 2.0
 
 

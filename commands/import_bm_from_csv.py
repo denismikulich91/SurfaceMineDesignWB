@@ -116,9 +116,9 @@ class ImportBmFromCsvTaskPanel:
             "name": os.path.splitext(os.path.basename(self.bm_full_path))[0],
             "fields": self.bm_fields,
             "pushback_field": pushback_field,
-            "block_size_x": block_size_x * const["MKS"],
-            "block_size_y": block_size_y * const["MKS"],
-            "block_size_z": block_size_z * const["MKS"],
+            "block_size_x": int(block_size_x * const["MKS"]),
+            "block_size_y": int(block_size_y * const["MKS"]),
+            "block_size_z": int(block_size_z * const["MKS"]),
             "density_field": density_field,
         }
         arrays = dict()
@@ -136,27 +136,27 @@ class ImportBmFromCsvTaskPanel:
                 arrays["x_coords"] = dict()
                 arrays["x_coords"]["array"] = arr * const["MKS"]
                 arrays["x_coords"]["type"] = BmFieldType.BLOCK_CENTROID
-                bm_metadata["x_min"] = float(arr.min()) * const["MKS"]
-                bm_metadata["x_max"] = float(arr.max()) * const["MKS"]
+                bm_metadata["x_min"] = int(float(arr.min()) * const["MKS"])
+                bm_metadata["x_max"] = int(float(arr.max()) * const["MKS"])
 
             elif self.bm_fields[i] == block_coords_field_y:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
                 arrays["y_coords"] = dict()
                 arrays["y_coords"]["array"] = arr * const["MKS"]
                 arrays["y_coords"]["type"] = BmFieldType.BLOCK_CENTROID
-                bm_metadata["y_min"] = float(arr.min()) * const["MKS"]
-                bm_metadata["y_max"] = float(arr.max()) * const["MKS"]
+                bm_metadata["y_min"] = int(float(arr.min()) * const["MKS"])
+                bm_metadata["y_max"] = int(float(arr.max()) * const["MKS"])
 
             elif self.bm_fields[i] == block_coords_field_z:
                 arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
                 arrays["z_coords"] = dict()
                 arrays["z_coords"]["array"] = arr * const["MKS"]
                 arrays["z_coords"]["type"] = BmFieldType.BLOCK_CENTROID
-                bm_metadata["z_min"] = float(arr.min()) * const["MKS"]
-                bm_metadata["z_max"] = float(arr.max()) * const["MKS"]
+                bm_metadata["z_min"] = int(float(arr.min()) * const["MKS"])
+                bm_metadata["z_max"] = int(float(arr.max()) * const["MKS"])
 
                 benches = []
-                bench_range = int((bm_metadata["z_max"] - bm_metadata["z_min"]) // bm_metadata["block_size_z"]) + 1
+                bench_range = (bm_metadata["z_max"] - bm_metadata["z_min"]) // bm_metadata["block_size_z"] + 1
                 
                 for bench in range(bench_range):
                     true_elevation = bm_metadata["z_min"] - bm_metadata["block_size_z"] / 2
@@ -191,7 +191,7 @@ class ImportBmFromCsvTaskPanel:
                     arr = np.loadtxt(self.bm_full_path, delimiter=',', skiprows=1, usecols=i)
                 except ValueError:
                     arr = np.loadtxt(self.bm_full_path, dtype=str, delimiter=',', skiprows=1, usecols=i)
-                    App.Console.PrintDeveloperWarning(f"\n{self.bm_fields[i]} field is detected as string\n")
+                    App.Console.PrintDeveloperWarning(f"{self.bm_fields[i]} field is detected as string\n")
 
                 arrays[self.bm_fields[i]] = {
                     "array": arr,
@@ -207,7 +207,7 @@ class ImportBmFromCsvTaskPanel:
                 if arr.shape[0] == mask.shape[0]:
                     value["filtered_array"] = arr[mask]
         except(ValueError):
-            App.Console.PrintError("\nWrong condition operator syntax!\n")
+            App.Console.PrintError("Wrong condition operator syntax!\n")
             bm_metadata = dict()
             return
         
